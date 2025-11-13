@@ -1,0 +1,19 @@
+# FastAPI y Servidor
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Base de Datos
+sqlalchemy
+psycopg2-binary
+
+# Seguridad y Autenticación
+passlib
+bcrypt==4.0.1
+python-jose[cryptography]
+
+# Configuración y Variables de Entorno
+pydantic-settings
+
+# API de Google Gemini
+google-genai
