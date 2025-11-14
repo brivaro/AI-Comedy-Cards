@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card as CardComponent } from './Card';
+import { Card as CardComponent } from '../ui/Card';
 import { Card } from '../../types';
 
 interface ThemeDisplayProps {

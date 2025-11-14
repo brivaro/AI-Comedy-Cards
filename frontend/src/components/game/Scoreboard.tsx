@@ -1,6 +1,6 @@
 import React from 'react';
 import { Player } from '../../types';
-import { Card } from './Card';
+import { Card } from '../ui/Card';
 
 interface ScoreboardProps {
   players: Player[];

@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import Disclaimer from './components/pages/Disclaimer';
-import MainMenu from './components/pages/MainMenu';
-import Lobby from './components/pages/Lobby';
-import GameBoard from './components/pages/GameBoard';
-import Toast from './components/common/Toast';
-import Spinner from './components/common/Spinner';
+import { Disclaimer } from './components/features/rooms/Disclaimer';
+import { MainMenu } from './components/features/rooms/MainMenu';
+import Lobby from './components/game/Lobby';
+import GameBoard from './components/game/GameBoard';
+import { Toast } from './components/ui/Toast';
+import { Spinner } from './components/ui/Spinner';
+import { Header } from './components/layout/Header';
 import { GameState, Room, PlayerHandCard } from './types';
 import { useAuth } from './context/AuthContext';
 import { websocketService } from './services/websocketService';
@@ -14,14 +15,18 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<GameState>(GameState.MainMenu);
   const [room, setRoom] = useState<Room | null>(null);
   const [myHand, setMyHand] = useState<PlayerHandCard[]>([]);
-  const [toast, setToast] = useState<{ message: string; show: boolean }>({ message: '', show: false });
+  const [toast, setToast] = useState<{ message: string; show: boolean; type: 'success' | 'error' | 'info' }>({ 
+    message: '', 
+    show: false, 
+    type: 'info' 
+  });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
-  const { user, accessToken, isLoading: isAuthLoading } = useAuth();
+  const { user, accessToken, isLoading: isAuthLoading, logout } = useAuth();
 
-  const showToast = useCallback((message: string) => {
-    setToast({ message, show: true });
-    setTimeout(() => setToast(prevState => ({ ...prevState, show: false })), 3000);
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, show: true, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
   }, []);
 
   const resetToMainMenu = useCallback(() => {
@@ -41,16 +46,16 @@ const App: React.FC = () => {
     };
 
     websocketService.onPlayerHandUpdate = (hand) => {
-        setMyHand(hand);
+      setMyHand(hand);
     };
     
     websocketService.onError = (message) => {
-      showToast(message);
+      showToast(message, 'error');
       setIsLoading(false);
     };
 
     websocketService.onRoomClosed = (message) => {
-      showToast(message);
+      showToast(message, 'info');
       resetToMainMenu();
     };
 
@@ -64,7 +69,7 @@ const App: React.FC = () => {
       setIsLoading(true);
       websocketService.connect(roomData.code, accessToken);
     } else {
-      showToast("Error de autenticación. Intenta iniciar sesión de nuevo.");
+      showToast("Error de autenticación. Intenta iniciar sesión de nuevo.", 'error');
     }
   };
 
@@ -73,30 +78,40 @@ const App: React.FC = () => {
   }
 
   const renderContent = () => {
-    if (isAuthLoading || isLoading) return <Spinner text="Cargando..." />;
+    if (isAuthLoading || isLoading) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <Spinner text="Cargando..." />
+        </div>
+      );
+    }
     
     switch (currentView) {
       case GameState.Lobby:
         if (!room || !user) return <Spinner text="Cargando sala..." />;
         return <Lobby room={room} currentUser={user} onLeave={resetToMainMenu} showToast={showToast} />;
+      
       case GameState.InGame:
         if (!room || !user) return <Spinner text="Cargando partida..." />;
         return <GameBoard room={room} currentUser={user} myHand={myHand} onLeaveGame={resetToMainMenu} />;
+      
       case GameState.MainMenu:
       default:
         return <MainMenu showToast={showToast} onRoomConnected={handleConnectToRoom} />;
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-brand-primary flex flex-col items-center justify-center p-4 font-sans text-brand-secondary">
-      <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tighter">
-        AI Comedy Cards
-      </h1>
-      <div className="w-full max-w-7xl mx-auto">
-        {renderContent()}
-      </div>
-      <Toast message={toast.message} show={toast.show} />
+    <div className="min-h-screen relative">
+      <Header username={user?.username} onLogout={logout} />
+      
+      <main className="pt-24 pb-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          {renderContent()}
+        </div>
+      </main>
+
+      <Toast message={toast.message} show={toast.show} type={toast.type} />
     </div>
   );
 };

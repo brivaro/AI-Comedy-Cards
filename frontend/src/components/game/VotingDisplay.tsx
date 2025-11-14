@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PlayedCardInfo } from '../../types';
-import { Card } from './Card';
+import { Card } from '../ui/Card';
 
 interface VotingDisplayProps {
   playedCards: PlayedCardInfo[];

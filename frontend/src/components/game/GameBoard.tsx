@@ -1,13 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { RoundPhase, User, Room, PlayerHandCard } from '../../types';
 import { websocketService } from '../../services/websocketService';
-import Scoreboard from '../common/Scoreboard';
-import PlayerHand from '../common/PlayerHand';
-import ThemeDisplay from '../common/ThemeDisplay';
-import VotingDisplay from '../common/VotingDisplay';
-import Spinner from '../common/Spinner';
+import Scoreboard from '../game/Scoreboard';
+import PlayerHand from '../game/PlayerHand';
+import ThemeDisplay from '../game/ThemeDisplay';
+import VotingDisplay from '../game/VotingDisplay';
+import { Spinner } from '../ui/Spinner';
 import { FIRST_PLACE_POINTS, SECOND_PLACE_POINTS, THIRD_PLACE_POINTS } from '../../constants';
-import Toast from '../common/Toast';
 
 interface GameBoardProps {
   onLeaveGame: () => void;
