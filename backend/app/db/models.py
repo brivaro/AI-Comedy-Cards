@@ -23,6 +23,9 @@ class Room(Base):
     played_cards_info = Column(JSON, default=list)
     round_winners = Column(JSON, default=list) # [1st_player_id, 2nd_player_id, 3rd_player_id]
 
+    personality_id = Column(Integer, ForeignKey("personalities.id"), nullable=True)
+    personality = relationship("Personality", back_populates="rooms")
+
     players = relationship(
         "Player",
         back_populates="room",
@@ -78,3 +81,13 @@ class PlayerCard(Base):
 
     player = relationship("Player", back_populates="hand")
     card = relationship("Card")
+
+# Modelo para las personalidades de la IA
+class Personality(Base):
+    __tablename__ = "personalities"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False, unique=True)
+    description = Column(Text, nullable=False)
+    template_prompt = Column(Text, nullable=False)
+
+    rooms = relationship("Room", back_populates="personality")

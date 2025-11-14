@@ -50,25 +50,89 @@ async def broadcast_player_hands(db: Session, room_code: str):
 
 # --- Acciones del Juego ---
 
-async def set_topic(db: Session, room_code: str, player_id: int, payload: dict):
-    """El host de la sala elige un tema para la partida."""
+#async def set_topic(db: Session, room_code: str, player_id: int, payload: dict):
+#    """El host de la sala elige un tema para la partida."""
+#    topic_id = payload.get('topic_id')
+#    room = crud.get_room_by_code(db, room_code)
+#    player = crud.get_player(db, player_id)
+#    topic = crud.get_topic(db, topic_id)
+#
+#    if not all([room, player, topic]) or not player.is_host:
+#        logging.warning(f"Intento no autorizado de establecer tema en sala {room_code} por PlayerID {player_id}")
+#        return
+#    
+#    try:
+#        room.topic_id = topic.id
+#        db.commit()
+#        logging.info(f"El host '{player.user.username}' ha establecido el tema '{topic.title}' (ID: {topic.id}) para la sala {room_code}.")
+#    except exc.SQLAlchemyError as e:
+#        logging.error(f"Error de base de datos al establecer el tema para la sala {room_code}: {e}")
+#        db.rollback()
+
+async def set_game_settings(db: Session, room_code: str, player_id: int, payload: dict):
+    """El host de la sala elige un tema y una personalidad para la partida."""
     topic_id = payload.get('topic_id')
+    personality_id = payload.get('personality_id')
+    
     room = crud.get_room_by_code(db, room_code)
     player = crud.get_player(db, player_id)
-    topic = crud.get_topic(db, topic_id)
 
-    if not all([room, player, topic]) or not player.is_host:
-        logging.warning(f"Intento no autorizado de establecer tema en sala {room_code} por PlayerID {player_id}")
+    if not all([room, player]) or not player.is_host:
+        logging.warning(f"Intento no autorizado de establecer ajustes en sala {room_code} por PlayerID {player_id}")
+        return
+    
+    # Validamos que los IDs existen antes de asignarlos
+    topic = crud.get_topic(db, topic_id) if topic_id else None
+    personality = db.query(models.Personality).filter(models.Personality.id == personality_id).first() if personality_id else None
+
+    if not topic or not personality:
+        logging.warning(f"Intento de establecer tema/personalidad inválido en sala {room_code}. T:{topic_id} P:{personality_id}")
+        return
+
+    try:
+        room.topic_id = topic.id
+        room.personality_id = personality.id
+        db.commit()
+        logging.info(f"El host '{player.user.username}' ha establecido el tema '{topic.title}' y la personalidad '{personality.title}' para la sala {room_code}.")
+    except exc.SQLAlchemyError as e:
+        logging.error(f"Error de base de datos al establecer ajustes para la sala {room_code}: {e}")
+        db.rollback()
+
+async def submit_custom_theme(db: Session, room_code: str, player_id: int, payload: dict):
+    """El Theme Master escribe y envía su propia carta de tema para la ronda."""
+    text = payload.get('text', '').strip()
+    room = crud.get_room_by_code(db, room_code)
+    player = crud.get_player(db, player_id)
+
+    # Validaciones
+    if not all([room, player]) or player.id != room.theme_master_id:
+        logging.warning(f"Intento no autorizado de enviar tema personalizado en sala {room_code} por PlayerID {player_id}")
+        return
+    if room.round_phase != "ThemeSelection":
+        logging.warning(f"Intento de enviar tema personalizado fuera de la fase ThemeSelection en sala {room_code}.")
+        return
+    if not (10 < len(text) < 280) or "______" not in text:
+        await manager.send_to_player(room_code, player_id, {"type": "error", "data": {"message": "El tema debe tener entre 10 y 280 caracteres e incluir '______'."}})
         return
     
     try:
-        room.topic_id = topic.id
-        db.commit()
-        logging.info(f"El host '{player.user.username}' ha establecido el tema '{topic.title}' (ID: {topic.id}) para la sala {room_code}.")
-    except exc.SQLAlchemyError as e:
-        logging.error(f"Error de base de datos al establecer el tema para la sala {room_code}: {e}")
-        db.rollback()
+        # Creamos una nueva carta de tema, asociada al topic actual de la sala
+        new_card = models.Card(
+            text=text,
+            card_type='theme',
+            topic_id=room.topic_id
+        )
+        db.add(new_card)
+        db.flush() # Para obtener el ID de la nueva carta
 
+        room.current_theme_card_id = new_card.id
+        room.round_phase = "CardPlaying"
+        
+        db.commit()
+        logging.info(f"Theme Master (PlayerID {player_id}) ha enviado un tema personalizado en la sala {room_code}.")
+    except exc.SQLAlchemyError as e:
+        logging.error(f"Error de BD al guardar tema personalizado en sala {room_code}: {e}")
+        db.rollback()
 
 async def start_game(db: Session, room_code: str, player_id: int, payload: dict):
     """Inicia la partida, generando y repartiendo cartas del tema elegido."""
@@ -81,16 +145,21 @@ async def start_game(db: Session, room_code: str, player_id: int, payload: dict)
     if not room.topic_id:
         await manager.send_to_player(room_code, player_id, {"type": "error", "data": {"message": "Debes elegir un tema antes de empezar."}})
         return
+    if not room.personality_id:
+        await manager.send_to_player(room_code, player_id, {"type": "error", "data": {"message": "Debes elegir una personalidad para la IA antes de empezar."}})
+        return
     if len(room.players) < constants.MIN_PLAYERS:
         await manager.send_to_player(room_code, player_id, {"type": "error", "data": {"message": f"Faltan jugadores (mínimo {constants.MIN_PLAYERS})."}})
         return
 
     topic = crud.get_topic(db, room.topic_id)
-    if not topic:
-        logging.error(f"GAME-ACTION: No se pudo iniciar la partida en {room_code}. El tema con ID {room.topic_id} no existe.")
+    personality = room.personality
+    
+    if not topic or not personality:
+        logging.error(f"GAME-ACTION: No se pudo iniciar la partida en {room_code}. El tema o la personalidad no existen.")
         return
 
-    logging.info(f"Iniciando partida en sala {room_code} con el tema '{topic.title}'.")
+    logging.info(f"Iniciando partida en sala {room_code} con el tema '{topic.title}' y la personalidad '{personality.title}'.")
     
     try:
         room.game_state = "InGame"
@@ -100,9 +169,10 @@ async def start_game(db: Session, room_code: str, player_id: int, payload: dict)
         theme_needed = len(room.players) * 2
         
         logging.info(f"Generando {response_needed} cartas de respuesta y {theme_needed} de tema para la sala {room_code}.")
+        
         response_texts, theme_texts = await asyncio.gather(
-            gemini.generate_cards_for_topic(topic.prompt, 'response', response_needed),
-            gemini.generate_cards_for_topic(topic.prompt, 'theme', theme_needed)
+            gemini.generate_cards_for_topic(topic.prompt, personality.template_prompt, 'response', 40), #response_needed)
+            gemini.generate_cards_for_topic(topic.prompt, personality.template_prompt, 'theme', 40) #theme_needed) 
         )
 
         # Crear y añadir todas las cartas nuevas a la sesión

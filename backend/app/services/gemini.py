@@ -6,7 +6,6 @@ from google import genai
 from google.genai import types
 
 from app.db.schemas import CardGenerationResponse
-from ..core.prompts import AI_SYSTEM_PROMPT_TEMPLATE
 
 # Constantes
 MODEL_NAME = 'gemini-flash-latest'
@@ -47,11 +46,11 @@ async def _generate_content_from_gemini(prompt: str, response_schema: BaseModel)
         logging.error(f"[ERROR] Error al contactar con la API de Gemini: {e}")
         raise HTTPException(status_code=500, detail="Ocurrió un error al generar contenido con la IA.")
     
-async def generate_cards_for_topic(topic_prompt: str, card_type: str, count: int) -> list[str]:
+async def generate_cards_for_topic(topic_prompt: str, personality_template: str, card_type: str, count: int) -> list[str]:
     """
     Genera un lote de cartas para un tema específico, esperando una respuesta JSON estructurada.
     """
-    system_instruction = AI_SYSTEM_PROMPT_TEMPLATE.format(topic_prompt=topic_prompt)
+    system_instruction = personality_template.format(topic_prompt=topic_prompt)
     
     if card_type == 'response':
         user_prompt = f"Genera {count} cartas de respuesta (blancas) sobre la temática."
@@ -63,10 +62,8 @@ async def generate_cards_for_topic(topic_prompt: str, card_type: str, count: int
     full_prompt = system_instruction + "\n" + user_prompt
     
     try:
-        # Llamamos a nuestra función genérica, pasándole el esquema de Pydantic que esperamos
         response_data = await _generate_content_from_gemini(full_prompt, CardGenerationResponse)
         
-        # El resultado ya es un diccionario validado, extraemos los textos
         validated_response = CardGenerationResponse.model_validate(response_data)
         card_texts = [card.text for card in validated_response.cards]
         
@@ -74,7 +71,6 @@ async def generate_cards_for_topic(topic_prompt: str, card_type: str, count: int
         return card_texts
 
     except HTTPException:
-        # Si la llamada a la IA falla, generamos placeholders para no romper el juego.
         logging.warning(f"La generación con IA falló. Devolviendo {count} placeholders.")
         if card_type == 'response':
             return [f"Respuesta de emergencia {i+1} (IA no disponible)" for i in range(count)]

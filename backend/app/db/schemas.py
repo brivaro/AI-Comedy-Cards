@@ -1,7 +1,7 @@
-from __future__ import annotations # ### MEJORA ### para type hints de la propia clase
+from __future__ import annotations
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from . import models # ### MEJORA ### para type hints
+from . import models
 
 # --- User & Token Schemas ---
 class UserBase(BaseModel):
@@ -55,7 +55,7 @@ class GeneratedCard(BaseModel):
     text: str = Field(..., description="El texto completo de la carta generada.")
 
 class CardGenerationResponse(BaseModel):
-    cards: List[GeneratedCard] = Field(..., description="Una lista 30 de las cartas generadas.")
+    cards: List[GeneratedCard] = Field(..., description="Una lista de las cartas generadas.")
 
 
 # --- Game Schemas ---
@@ -85,12 +85,14 @@ class RoomSchema(BaseModel):
     code: str
     game_state: str
     topic_id: Optional[int]
+    personality_id: Optional[int] 
     theme_master_id: Optional[int]
     current_theme_card: Optional[CardSchema]
     round_phase: Optional[str]
     players: List[PlayerSchema] = []
     played_cards_info: List[dict] = [] 
     round_winners: List[int] = []
+    personality: Optional[PersonalitySchema]
 
     class Config:
         from_attributes = True
@@ -111,6 +113,8 @@ class RoomSchema(BaseModel):
             code=room.code,
             game_state=room.game_state,
             topic_id=room.topic_id,
+            personality_id=room.personality_id,
+            personality=PersonalitySchema.model_validate(room.personality, from_attributes=True) if room.personality else None,
             theme_master_id=room.theme_master_id,
             current_theme_card=CardSchema.model_validate(room.current_theme_card, from_attributes=True) if room.current_theme_card else None,
             round_phase=room.round_phase,
@@ -118,3 +122,11 @@ class RoomSchema(BaseModel):
             played_cards_info=room.played_cards_info or [],
             round_winners=room.round_winners or []
         )
+    
+class PersonalitySchema(BaseModel):
+    id: int
+    title: str
+    description: str
+
+    class Config:
+        from_attributes = True

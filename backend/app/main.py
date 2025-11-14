@@ -5,14 +5,13 @@ import logging
 import os
 import binascii
 
-# Se importan tanto los schemas como los modelos para claridad
 from app.db import schemas, models
-from app.core.security import get_password_hash
+from app.core.personality import DEFAULT_PERSONALITIES
+from app.core.topic import DEFAULT_TOPICS
 
 from .db.database import engine, Base, SessionLocal
 from .db import crud
-from .core.prompts import DEFAULT_TOPIC_PROMPT
-from .routers import auth, rooms, topics, game_ws
+from .routers import auth, rooms, topics, game_ws, personalities
 
 # Configuración de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -26,33 +25,43 @@ def initial_setup():
         system_user = crud.get_user_by_username(db, username="Sistema")
         if not system_user:
             logging.info("Usuario 'Sistema' no encontrado, procediendo a crearlo.")
-            
-            # ### CORRECCIÓN ###:
-            # 1. Generamos una contraseña segura y aleatoria.
             secure_password = binascii.hexlify(os.urandom(24)).decode()
-            
-            # 2. Creamos un schema Pydantic `UserCreate` con esa contraseña.
             system_user_schema = schemas.UserCreate(
                 username="Sistema",
                 password=secure_password
             )
-            
-            # 3. Usamos la función CRUD existente, que está diseñada para
-            #    manejar correctamente la creación del modelo SQLAlchemy.
             system_user = crud.create_user(db, user=system_user_schema)
             logging.info("Usuario 'Sistema' creado con una contraseña segura y no utilizable.")
 
-        # 2. Crear tema por defecto si no existe
-        default_title = "Humor Negro"
-        default_topic = crud.get_topic_by_title(db, title=default_title)
-        if not default_topic:
-            default_topic_schema = schemas.TopicCreate(
-                title=default_title,
-                prompt=DEFAULT_TOPIC_PROMPT,
-                is_public=True
-            )
-            crud.create_topic(db, topic=default_topic_schema, owner_id=system_user.id)
-            logging.info(f"Tema por defecto '{default_title}' creado y asignado al usuario 'Sistema'.")
+        # 2. Crear temas por defecto si no existen
+        logging.info("Verificando existencia de temas por defecto...")
+        for t_data in DEFAULT_TOPICS:
+            existing_topic = crud.get_topic_by_title(db, title=t_data["title"])
+            if not existing_topic:
+                logging.info(f"Creando tema: '{t_data['title']}'...")
+                topic_schema = schemas.TopicCreate(
+                    title=t_data["title"],
+                    prompt=t_data["prompt"],
+                    is_public=t_data["is_public"]
+                )
+                # Asignamos el tema al usuario "Sistema"
+                crud.create_topic(db, topic=topic_schema, owner_id=system_user.id)
+        db.commit()
+        logging.info("Verificación de temas completada.")
+
+        logging.info("Verificando existencia de personalidades por defecto...")
+        for p_data in DEFAULT_PERSONALITIES:
+            existing_personality = db.query(models.Personality).filter(models.Personality.title == p_data["title"]).first()
+            if not existing_personality:
+                logging.info(f"Creando personalidad: '{p_data['title']}'...")
+                db_personality = models.Personality(
+                    title=p_data["title"],
+                    description=p_data["description"],
+                    template_prompt=p_data["template"]
+                )
+                db.add(db_personality)
+        db.commit()
+        logging.info("Verificación de personalidades completada.")
     finally:
         db.close()
 
@@ -83,6 +92,7 @@ app.include_router(auth.router)
 app.include_router(rooms.router)
 app.include_router(topics.router)
 app.include_router(game_ws.router)
+app.include_router(personalities.router)
 
 @app.get("/api/v1")
 def read_root():

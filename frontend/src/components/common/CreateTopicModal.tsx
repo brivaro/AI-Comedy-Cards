@@ -20,8 +20,8 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ onClose, onTopicCre
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (title.length < 5 || prompt.length < 20) {
-      setError('El título debe tener al menos 5 caracteres y el prompt al menos 20.');
+    if (title.length < 4 || prompt.length < 10) {
+      setError('El título debe tener al menos 4 caracteres y el prompt al menos 10.');
       return;
     }
     setError('');

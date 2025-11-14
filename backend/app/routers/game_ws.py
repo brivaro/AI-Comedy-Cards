@@ -47,9 +47,10 @@ async def websocket_endpoint(
             logging.info(f"WS-ACTION: Sala '{room_code}', Jugador '{user.username}' (ID: {player.id}) -> Acción: '{action}', Payload: {payload}")
             
             action_map = {
-                "set_topic": game_logic.set_topic,   
+                "set_game_settings": game_logic.set_game_settings,
                 "start_game": game_logic.start_game,
                 "choose_theme_card": game_logic.choose_theme_card,
+                "submit_custom_theme": game_logic.submit_custom_theme, 
                 "play_card": game_logic.play_card,
                 "select_winners": game_logic.select_winners,
                 "start_next_round": game_logic.start_next_round,
