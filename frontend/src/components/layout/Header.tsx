@@ -13,7 +13,7 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
         {/* Logo y Título Mejorado */}
         <div className="flex items-center gap-4">
           {/* Icono con efecto lava lamp */}
-          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 flex items-center justify-center shadow-2xl shadow-cyan-500/40 overflow-hidden">
+          <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl shadow-cyan-500/40 overflow-hidden">
             {/* Efecto lava lamp animado */}
             <div className="absolute inset-0 opacity-60">
               <div className="absolute w-20 h-20 bg-cyan-300 rounded-full blur-xl animate-[float_4s_ease-in-out_infinite]" 
@@ -23,7 +23,7 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
               <div className="absolute w-12 h-12 bg-purple-400 rounded-full blur-xl animate-[float_6s_ease-in-out_infinite_1s]" 
                    style={{ top: '40%', right: '15%' }} />
             </div>
-            <span className="text-4xl relative z-10">🎭</span>
+            <span className="text-5xl relative z-10">🎭</span>
           </div>
           
           {/* Título más grande con gradiente mejorado */}

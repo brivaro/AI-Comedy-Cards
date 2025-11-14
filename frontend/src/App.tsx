@@ -37,6 +37,11 @@ const App: React.FC = () => {
     setIsLoading(false);
   }, []);
 
+  const handleLogout = () => {
+    logout();
+    resetToMainMenu();
+  };
+
   useEffect(() => {
     websocketService.onGameStateUpdate = (newRoomState) => {
       setRoom(newRoomState);
@@ -93,7 +98,7 @@ const App: React.FC = () => {
       
       case GameState.InGame:
         if (!room || !user) return <Spinner text="Cargando partida..." />;
-        return <GameBoard room={room} currentUser={user} onLeaveGame={resetToMainMenu} />;
+        return <GameBoard room={room} currentUser={user} myHand={myHand} onLeaveGame={resetToMainMenu} />;
       
       case GameState.MainMenu:
       default:
@@ -103,7 +108,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen relative">
-      <Header username={user?.username} onLogout={logout} />
+      <Header username={user?.username} onLogout={handleLogout} />
       
       <main className="pt-24 pb-8 px-4">
         <div className="max-w-7xl mx-auto">
