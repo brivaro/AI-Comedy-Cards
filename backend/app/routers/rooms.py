@@ -31,21 +31,23 @@ def join_existing_room(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="La sala no existe.")
     
     if crud.get_player_by_user_id_and_room_code(db, user_id=current_user.id, room_code=room_code):
-        logging.warning(f"Usuario '{current_user.username}' ya está en la sala '{room_code.upper()}'.")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ya estás en esta sala.")
+        logging.info(f"Usuario '{current_user.username}' ya está en la sala '{room_code.upper()}', reconectando.")
+        return schemas.RoomSchema.from_orm_model(db_room)
 
     if len(db_room.players) >= MAX_PLAYERS:
         logging.warning(f"La sala '{room_code.upper()}' está llena. Intento de unión de '{current_user.username}' denegado.")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="La sala está llena.")
 
-    if db_room.game_state != "Lobby":
-        logging.warning(f"La partida en la sala '{room_code.upper()}' ya ha comenzado. Intento de unión denegado.")
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="La partida ya ha comenzado.")
-
-    crud.add_player_to_room(db, room=db_room, user=current_user)
+    is_spectator = False
+    if db_room.game_state == "InGame":
+        logging.warning(f"La partida en la sala '{room_code.upper()}' ya ha comenzado. '{current_user.username}' se unirá como espectador.")
+        is_spectator = True
+    
+    crud.add_player_to_room(db, room=db_room, user=current_user, is_spectating=is_spectator)
     
     db.refresh(db_room)
-    logging.info(f"Usuario '{current_user.username}' se ha unido con éxito a la sala '{room_code.upper()}'.")
+    logging.info(f"Usuario '{current_user.username}' se ha unido con éxito a la sala '{room_code.upper()}'." + (" como espectador." if is_spectator else ""))
+    
     return schemas.RoomSchema.from_orm_model(db_room)
 
 @router.get("/{room_code}", response_model=schemas.RoomSchema)

@@ -1,6 +1,26 @@
 import { Room, PlayerHandCard } from '../types';
 import { API_BASE_URL } from './apiService';
 
+// Definimos los tipos de acciones y sus payloads
+type WebSocketAction = 
+  | 'set_game_settings'
+  | 'start_game'
+  | 'choose_theme_card'
+  | 'submit_custom_theme'
+  | 'play_card'
+  | 'select_winners'
+  | 'start_next_round';
+
+interface WebSocketPayloads {
+  set_game_settings: { topic_id: number; personality_id: number };
+  start_game: {};
+  choose_theme_card: {};
+  submit_custom_theme: { text: string };
+  play_card: { player_card_id: number };
+  select_winners: { winner_ids: number[] };
+  start_next_round: {};
+}
+
 class WebSocketService {
   private ws: WebSocket | null = null;
 
@@ -16,6 +36,7 @@ class WebSocketService {
     
     const proto = window.location.protocol === 'https' ? 'wss' : 'ws';
     const host = window.location.host;
+    console.log(host);
     // La ruta del websocket debe coincidir con la de Nginx
     const wsUrl = `${proto}://${host}/ws/game/${roomCode}?token=${token}`;
 
@@ -65,7 +86,7 @@ class WebSocketService {
     }
   }
 
-  sendMessage(action: string, payload: object = {}) {
+  sendMessage<T extends WebSocketAction>(action: T, payload: WebSocketPayloads[T]) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ action, payload }));
     } else {

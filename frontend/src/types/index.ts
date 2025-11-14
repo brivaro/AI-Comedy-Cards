@@ -40,6 +40,7 @@ export interface Player {
   is_host: boolean;
   is_theme_master: boolean;
   has_played: boolean;
+  is_spectating: boolean;
 }
 
 export interface Card {
@@ -65,6 +66,8 @@ export interface Room {
   code: string;
   game_state: 'Lobby' | 'InGame';
   topic_id: number | null;
+  personality_id: number | null;
+  personality: Personality | null;
   theme_master_id: number | null;
   current_theme_card: Card | null;
   round_phase: RoundPhase | null;
@@ -72,6 +75,12 @@ export interface Room {
   played_cards_info: PlayedCardInfo[];
   round_winners: number[];
 }
+export interface Personality {
+    id: number;
+    title: string;
+    description: string;
+}
+
 
 // --- Tipos para WebSockets ---
 export interface PlayerHandUpdateMessage {

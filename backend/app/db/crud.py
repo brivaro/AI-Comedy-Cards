@@ -87,13 +87,15 @@ def get_player_by_user_id_and_room_code(db: Session, user_id: int, room_code: st
 def get_players_in_room(db: Session, room_id: int):
     return db.query(models.Player).filter(models.Player.room_id == room_id).all()
 
-def add_player_to_room(db: Session, room: models.Room, user: models.User, is_host: bool = False):
-    logging.info(f"Añadiendo jugador '{user.username}' a la sala '{room.code}'. Es host: {is_host}")
+def add_player_to_room(db: Session, room: models.Room, user: models.User, is_host: bool = False, is_spectating: bool = False):
+    logging.info(f"Añadiendo jugador '{user.username}' a la sala '{room.code}'. Es host: {is_host}, Espectador: {is_spectating}")
     db_player = models.Player(
         user_id=user.id, 
         room_id=room.id, 
         is_host=is_host,
-        is_theme_master=is_host
+        # Si es host, no puede ser espectador y se convierte en theme_master inicial.
+        is_theme_master=is_host,
+        is_spectating=is_spectating
     )
     db.add(db_player)
     db.commit()
@@ -104,6 +106,7 @@ def add_player_to_room(db: Session, room: models.Room, user: models.User, is_hos
         db.commit()
 
     return db_player
+
 
 # --- Topic CRUD ---
 

@@ -11,6 +11,9 @@ from ..core import constants
 
 # --- Funciones de Difusión ---
 
+INITIAL_RESPONSE_CARD_BUFFER = 100
+INITIAL_THEME_CARD_BUFFER = 40
+
 async def broadcast_game_state(db: Session, room_code: str):
     """Obtiene el estado actual de la sala y lo envía a todos los jugadores."""
     room = crud.get_room_by_code(db, room_code)
@@ -165,14 +168,17 @@ async def start_game(db: Session, room_code: str, player_id: int, payload: dict)
         room.game_state = "InGame"
         room.round_phase = "ThemeSelection"
 
-        response_needed = len(room.players) * constants.INITIAL_HAND_SIZE
-        theme_needed = len(room.players) * 2
+        #response_needed = len(room.players) * constants.INITIAL_HAND_SIZE
+        #theme_needed = len(room.players) * 2
         
+        response_needed = INITIAL_RESPONSE_CARD_BUFFER
+        theme_needed = INITIAL_THEME_CARD_BUFFER
+
         logging.info(f"Generando {response_needed} cartas de respuesta y {theme_needed} de tema para la sala {room_code}.")
         
         response_texts, theme_texts = await asyncio.gather(
-            gemini.generate_cards_for_topic(topic.prompt, personality.template_prompt, 'response', 40), #response_needed)
-            gemini.generate_cards_for_topic(topic.prompt, personality.template_prompt, 'theme', 40) #theme_needed) 
+            gemini.generate_cards_for_topic(topic.prompt, personality.template_prompt, 'response', response_needed),
+            gemini.generate_cards_for_topic(topic.prompt, personality.template_prompt, 'theme', theme_needed) 
         )
 
         # Crear y añadir todas las cartas nuevas a la sesión
@@ -297,15 +303,20 @@ async def select_winners(db: Session, room_code: str, player_id: int, payload: d
 
 
 async def start_next_round(db: Session, room_code: str, player_id: int, payload: dict):
-    # ### MEJORA ###: Corregida SAWarning
     room = crud.get_room_by_code(db, room_code)
     if not room or player_id != room.theme_master_id: return
 
     try:
-        player_ids_who_played = {card['playerId'] for card in room.played_cards_info}
+        spectators = [p for p in room.players if p.is_spectating]
+        #newly_activated_player_ids = {p.id for p in spectators}
         
+        # Obtenemos los IDs de los jugadores que jugaron en la ronda anterior.
+        player_ids_who_played = {card['playerId'] for card in room.played_cards_info}
+
+        # Subconsulta para las cartas en mano de todos los jugadores (activos y espectadores)
         cards_in_hand_subquery = db.query(models.PlayerCard.card_id).join(models.Player).filter(models.Player.room_id == room.id).subquery()
         
+        # Buscamos cartas disponibles
         available_cards = db.query(models.Card).filter(
             models.Card.topic_id == room.topic_id,
             models.Card.card_type == 'response',
@@ -313,20 +324,33 @@ async def start_next_round(db: Session, room_code: str, player_id: int, payload:
         ).all()
         random.shuffle(available_cards)
 
-        if len(available_cards) < len(player_ids_who_played):
-            await manager.broadcast(room_code, {"type": "error", "data": {"message": "¡Se acabaron las cartas! La partida ha terminado."}})
-            room.game_state = "Lobby"
+        cards_needed = len(player_ids_who_played) + (len(spectators) * constants.INITIAL_HAND_SIZE)
+
+        if len(available_cards) < cards_needed:
+            await manager.broadcast(room_code, {"type": "error", "data": {"message": "¡No quedan suficientes cartas para los nuevos jugadores! La partida ha terminado."}})
+            room.game_state = "Lobby" # O alguna otra lógica de fin de juego
         else:
+            # 1. Convertir espectadores en jugadores activos
+            for spectator in spectators:
+                spectator.is_spectating = False
+                logging.info(f"Jugador '{spectator.user.username}' (ID: {spectator.id}) ha sido activado en la sala {room_code}.")
+                # Repartirles una mano completa
+                for _ in range(constants.INITIAL_HAND_SIZE):
+                    if available_cards:
+                        db.add(models.PlayerCard(player_id=spectator.id, card_id=available_cards.pop().id))
+            
+            # 2. Reponer una carta a los jugadores que ya estaban jugando
             for p_id in list(player_ids_who_played):
                 if available_cards:
                     db.add(models.PlayerCard(player_id=p_id, card_id=available_cards.pop().id))
 
-            players = sorted(room.players, key=lambda p: p.id)
-            current_tm_index = next((i for i, p in enumerate(players) if p.id == room.theme_master_id), -1)
+            all_active_players = sorted([p for p in room.players if not p.is_spectating], key=lambda p: p.id)
+            current_tm_index = next((i for i, p in enumerate(all_active_players) if p.id == room.theme_master_id), -1)
             
-            if current_tm_index != -1: players[current_tm_index].is_theme_master = False
-            next_tm_index = (current_tm_index + 1) % len(players)
-            new_theme_master = players[next_tm_index]
+            if current_tm_index != -1: all_active_players[current_tm_index].is_theme_master = False
+            
+            next_tm_index = (current_tm_index + 1) % len(all_active_players)
+            new_theme_master = all_active_players[next_tm_index]
             new_theme_master.is_theme_master = True
             
             room.theme_master_id = new_theme_master.id
@@ -334,16 +358,14 @@ async def start_next_round(db: Session, room_code: str, player_id: int, payload:
             room.current_theme_card_id = None
             room.played_cards_info = []
             room.round_winners = []
-            for p in players: p.has_played = False
+            for p in all_active_players: p.has_played = False
 
         db.commit()
     except exc.SQLAlchemyError as e:
         logging.error(f"Error de BD al iniciar nueva ronda en sala {room_code}: {e}")
         db.rollback()
 
-
 async def handle_player_disconnect(db: Session, room_code: str, player_id: int):
-    # ### CORRECCIÓN ###: Lógica completa para manejar la desconexión correctamente.
     player = crud.get_player(db, player_id)
     if not player:
         return
@@ -352,53 +374,53 @@ async def handle_player_disconnect(db: Session, room_code: str, player_id: int):
     logging.info(f"Gestionando desconexión del jugador '{player.user.username}' (PlayerID {player_id}) en sala {room_code}.")
 
     try:
-        # Si es el último jugador, se elimina la sala
         if len(room.players) <= 1:
             logging.info(f"Último jugador desconectado de la sala {room_code}. Eliminando la sala.")
             db.delete(room)
             db.commit()
+            await manager.broadcast(room_code, {"type": "room_closed", "data": {"message": "La sala ha sido cerrada."}})
             return
-            
-        was_host = player.is_host
-        was_theme_master = player.is_theme_master
-        is_game_in_progress = room.game_state == 'InGame'
 
-        # 1. Romper la dependencia de la clave foránea ANTES de borrar
-        if was_theme_master:
-            logging.info(f"El jugador desconectado '{player.user.username}' era el Theme Master.")
+        if player.is_theme_master:
+            logging.info(f"El jugador que se desconecta es el Theme Master. Anulando la FK primero.")
             room.theme_master_id = None
-            db.flush() # Aplicamos el cambio para que la FK se libere
+            db.commit()
+            db.refresh(room)
 
-        # 2. Ahora podemos borrar al jugador de forma segura
-        db.delete(player)
-        db.flush() # Aplicamos la eliminación para que room.players se actualice
-
-        # 3. Reasignar roles con los jugadores restantes
-        remaining_players = sorted(room.players, key=lambda p: p.id)
-
-        if was_host and remaining_players:
-            new_host = remaining_players[0]
-            new_host.is_host = True
-            logging.info(f"Host reasignado a '{new_host.user.username}' en sala {room_code}.")
-
-        if was_theme_master and is_game_in_progress and remaining_players:
-            # Si el TM se va a mitad de ronda, la reiniciamos para evitar bloqueos
-            new_theme_master = remaining_players[0]
-            new_theme_master.is_theme_master = True
-            room.theme_master_id = new_theme_master.id
+        player_to_delete = crud.get_player(db, player_id)
+        if player_to_delete:
+            was_host = player_to_delete.is_host
             
-            room.round_phase = "ThemeSelection"
-            room.current_theme_card_id = None
-            room.played_cards_info = []      
-            room.round_winners = []
-            for p in remaining_players:
-                p.has_played = False
-            logging.info(f"Ronda reiniciada. Theme Master reasignado a '{new_theme_master.user.username}'.")
-        
-        # 4. Finalizar la transacción
-        db.commit()
-        logging.info(f"Desconexión del PlayerID {player_id} manejada con éxito en sala {room_code}.")
+            db.delete(player_to_delete)
+            db.commit() # Transacción 2: Eliminamos al jugador de forma segura.
 
+            current_room = crud.get_room_by_code(db, room_code)
+            if not current_room: return
+
+            remaining_players = sorted(current_room.players, key=lambda p: p.id)
+
+            if was_host and remaining_players:
+                new_host = remaining_players[0]
+                new_host.is_host = True
+                logging.info(f"Host reasignado a '{new_host.user.username}' en sala {room_code}.")
+
+            # Si la partida está en curso y nos quedamos sin TM, reiniciamos la ronda.
+            if current_room.game_state == 'InGame' and not current_room.theme_master_id and remaining_players:
+                new_theme_master = remaining_players[0]
+                new_theme_master.is_theme_master = True
+                current_room.theme_master_id = new_theme_master.id
+                
+                current_room.round_phase = "ThemeSelection"
+                current_room.current_theme_card_id = None
+                current_room.played_cards_info = []
+                current_room.round_winners = []
+                for p in remaining_players:
+                    p.has_played = False
+                logging.info(f"Ronda reiniciada. Theme Master reasignado a '{new_theme_master.user.username}'.")
+            
+            db.commit() # Transacción 3: Guardamos los nuevos roles.
+            logging.info(f"Desconexión del PlayerID {player_id} manejada con éxito.")
+        
     except exc.SQLAlchemyError as e:
         logging.error(f"Error de BD al manejar desconexión en sala {room_code}: {e}", exc_info=True)
-        db.rollback()
+        db.rollback()   

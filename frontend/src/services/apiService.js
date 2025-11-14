@@ -17,6 +17,27 @@ api.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
+// Interceptor para manejar errores de autenticación de forma global
+api.interceptors.response.use(
+  (response) => response, // Si la respuesta es exitosa, no hacemos nada.
+  (error) => {
+    // Si la respuesta es un error 401 (No Autorizado)
+    if (error.response && error.response.status === 401) {
+      console.error("Authentication Error: Token might be expired or invalid.");
+      // Limpiamos el token del almacenamiento local.
+      localStorage.removeItem('accessToken');
+      // Forzamos un refresco de la página. La aplicación se reiniciará
+      // y al no encontrar token, AuthContext redirigirá al login.
+      // Podríamos mostrar un Toast aquí si tuviéramos acceso a esa función.
+      alert("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
+      window.location.href = '/'; 
+    }
+    // Para cualquier otro error, simplemente lo devolvemos para que sea manejado localmente.
+    return Promise.reject(error);
+  }
+);
+
+
 // --- Funciones de Autenticación ---
 export const register = (userData) => {
   return api.post('/auth/register', userData);
@@ -55,4 +76,8 @@ export const getMyTopics = () => {
 
 export const getPublicTopics = () => {
     return api.get('/topics/public');
+};
+
+export const getPersonalities = () => {
+    return api.get('/personalities/');
 };
