@@ -91,10 +91,10 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
     <>
       <div className="w-full max-w-6xl mx-auto animate-fade-in space-y-6">
         {/* Header de la sala */}
-        <Card className="glass-strong p-6 border border-white/20">
+        <Card className="glass-strong p-6 border-2 border-cyan-500/20">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
                 <Users className="w-6 h-6 text-white" weight="bold" />
               </div>
               <div>
@@ -103,10 +103,10 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
                   onClick={handleCopyCode}
                   className="flex items-center gap-2 cursor-pointer group"
                 >
-                  <span className="text-3xl font-black tracking-widest text-transparent bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text">
+                  <span className="text-3xl font-black tracking-widest text-transparent bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text">
                     {room.code}
                   </span>
-                  <Copy className="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors" weight="bold" />
+                  <Copy className="w-5 h-5 text-gray-400 group-hover:text-cyan-400 transition-colors" weight="bold" />
                 </div>
               </div>
             </div>
@@ -124,10 +124,10 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
 
         {/* Configuración actual */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="glass-card p-6 border border-white/10">
+          <Card className="glass-card p-6 border-2 border-cyan-500/10">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                <Robot className="w-5 h-5 text-purple-400" weight="bold" />
+              <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                <Robot className="w-5 h-5 text-cyan-400" weight="bold" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-400 font-medium mb-1">Personalidad IA</p>
@@ -143,7 +143,7 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
             </div>
           </Card>
 
-          <Card className="glass-card p-6 border border-white/10">
+          <Card className="glass-card p-6 border-2 border-blue-500/10">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
                 <BookOpen className="w-5 h-5 text-blue-400" weight="bold" />
@@ -164,14 +164,14 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
         </div>
 
         {/* Jugadores */}
-        <Card className="glass-card p-6 border border-white/10">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+        <Card className="glass-card p-6 border-2 border-cyan-500/10">
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
             <Users className="w-5 h-5" weight="bold" />
             Jugadores ({room.players.length}/{MAX_PLAYERS})
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {room.players.map(player => (
-              <div key={player.id} className="glass-strong rounded-xl p-3 border border-white/10">
+              <div key={player.id} className="glass-strong rounded-xl p-3 border-2 border-cyan-500/10">
                 <p className="font-bold text-white truncate">
                   {player.is_host && '👑 '}
                   {player.username}
@@ -183,7 +183,7 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
 
         {/* Controles del host */}
         {isHost && (
-          <Card className="glass-strong p-6 border border-white/20">
+          <Card className="glass-strong p-6 border-2 border-cyan-500/20">
             {isLoading ? (
               <Spinner text="Cargando opciones..." />
             ) : (
@@ -197,7 +197,7 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
                   onPersonalitySelect={setSelectedPersonalityId}
                 />
                 
-                <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-white/10">
+                <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-cyan-500/20">
                   <Button
                     onClick={() => setShowCreateModal(true)}
                     variant="secondary"
@@ -238,7 +238,7 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
         )}
 
         {!isHost && (
-          <Card className="glass-card p-8 border border-white/10 text-center">
+          <Card className="glass-card p-8 border-2 border-cyan-500/10 text-center">
             <Spinner text="Esperando a que el host configure la partida..." size="sm" />
           </Card>
         )}

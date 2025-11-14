@@ -16,10 +16,10 @@ export const Spinner: React.FC<SpinnerProps> = ({ text = "Cargando...", size = '
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-8">
       <div className="relative">
-        <div className={`${sizes[size]} rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 opacity-20 absolute inset-0 animate-ping`} />
+        <div className={`${sizes[size]} rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 opacity-20 absolute inset-0 animate-ping`} />
         <CircleNotch 
           weight="bold" 
-          className={`${sizes[size]} text-purple-400 animate-spin`}
+          className={`${sizes[size]} text-cyan-400 animate-spin`}
         />
       </div>
       {text && (

@@ -19,11 +19,11 @@ export const Card: React.FC<CardProps> = ({
   const baseClasses = "rounded-2xl shadow-2xl flex flex-col justify-between transition-all duration-300";
   
   const colorClasses = color === 'white' 
-    ? 'bg-gradient-to-br from-white to-gray-50 text-gray-900 shadow-purple-500/10' 
+    ? 'bg-gradient-to-br from-white to-gray-50 text-gray-900 shadow-cyan-500/10 border-2 border-cyan-200/20' 
     : 'glass-card text-white border border-white/10';
 
   const selectableClasses = isSelectable 
-    ? 'cursor-pointer hover:-translate-y-3 hover:shadow-2xl hover:shadow-purple-500/50 hover:border-purple-500/50 active:scale-95' 
+    ? 'cursor-pointer hover:-translate-y-3 hover:shadow-2xl hover:shadow-cyan-500/50 hover:border-cyan-500/50 active:scale-95' 
     : '';
 
   const sizeClasses = text ? 'w-48 h-64 p-6' : '';

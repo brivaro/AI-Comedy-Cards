@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
-import { Topic, Personality } from '../../../types';
-import { Input } from '../../ui/Input';
 import { MagnifyingGlass, Robot, BookOpen, Check } from 'phosphor-react';
-import clsx from 'clsx';
+
+interface Topic {
+  id: number;
+  title: string;
+  prompt: string;
+  is_public: boolean;
+  owner_username: string;
+}
+
+interface Personality {
+  id: number;
+  title: string;
+  description: string;
+}
 
 interface SelectableCardProps {
   title: string;
@@ -22,31 +33,38 @@ const SelectableCard: React.FC<SelectableCardProps> = ({
   return (
     <div
       onClick={onSelect}
-      className={clsx(
-        'glass-card rounded-xl p-4 border-2 cursor-pointer transition-all duration-300 hover-lift relative overflow-hidden',
+      className={`glass-card rounded-xl p-4 border-2 cursor-pointer transition-all duration-300 relative overflow-hidden group ${
         isSelected 
-          ? 'border-purple-500 ring-2 ring-purple-500/50 shadow-lg shadow-purple-500/20' 
-          : 'border-white/10 hover:border-purple-500/30'
-      )}
+          ? 'border-cyan-400 ring-2 ring-cyan-500/50 shadow-xl shadow-cyan-500/30 scale-[1.02]' 
+          : 'border-slate-600/30 hover:border-cyan-500/50 hover:scale-[1.01] hover:shadow-lg hover:shadow-cyan-500/10'
+      }`}
     >
+      {/* Efecto de brillo al hover */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+      
       {isSelected && (
-        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
+        <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg animate-pop-in">
           <Check className="w-4 h-4 text-white" weight="bold" />
         </div>
       )}
       
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 relative z-10">
         {icon && (
-          <div className={clsx(
-            'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-            isSelected ? 'bg-purple-500/20' : 'bg-white/5'
-          )}>
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+            isSelected ? 'bg-cyan-500/30 shadow-lg shadow-cyan-500/20' : 'bg-slate-700/50 group-hover:bg-cyan-500/20'
+          }`}>
             {icon}
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h4 className="font-bold text-lg text-white mb-1 truncate">{title}</h4>
-          <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed">{description}</p>
+          <h4 className={`font-bold text-base mb-1.5 truncate transition-colors ${
+            isSelected ? 'text-cyan-300' : 'text-white group-hover:text-cyan-200'
+          }`}>
+            {title}
+          </h4>
+          <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed">
+            {description}
+          </p>
         </div>
       </div>
     </div>
@@ -73,81 +91,108 @@ const GameSettingsSelector: React.FC<GameSettingsSelectorProps> = ({
   const [topicFilter, setTopicFilter] = useState('');
   const [personalityFilter, setPersonalityFilter] = useState('');
 
-  const filteredTopics = availableTopics.filter(t => 
-    t.title.toLowerCase().includes(topicFilter.toLowerCase())
-  );
+  // Búsqueda mejorada que incluye título y descripción
+  const filteredTopics = availableTopics.filter(t => {
+    const searchTerm = topicFilter.toLowerCase();
+    return t.title.toLowerCase().includes(searchTerm) || 
+           t.prompt.toLowerCase().includes(searchTerm);
+  });
   
-  const filteredPersonalities = availablePersonalities.filter(p => 
-    p.title.toLowerCase().includes(personalityFilter.toLowerCase())
-  );
+  const filteredPersonalities = availablePersonalities.filter(p => {
+    const searchTerm = personalityFilter.toLowerCase();
+    return p.title.toLowerCase().includes(searchTerm) || 
+           p.description.toLowerCase().includes(searchTerm);
+  });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Columna de Personalidades */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Columna de Personalidades - Ahora más pequeña */}
       <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-            <Robot className="w-5 h-5 text-purple-400" weight="bold" />
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+            <Robot className="w-6 h-6 text-white" weight="bold" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-white">1. Personalidad IA</h3>
-            <p className="text-sm text-gray-400">¿Cómo debe actuar la IA?</p>
+            <h3 className="text-xl font-black text-white leading-tight">1. Personalidad</h3>
+            <p className="text-xs text-gray-400 leading-tight">¿Cómo actuará la IA?</p>
           </div>
         </div>
         
-        <Input
-          type="text"
-          placeholder="Buscar personalidad..."
-          value={personalityFilter}
-          onChange={(e) => setPersonalityFilter((e.target as HTMLInputElement).value)}
-          icon={<MagnifyingGlass className="w-5 h-5" weight="bold" />}
-        />
+        <div className="relative">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400 pointer-events-none">
+            <MagnifyingGlass className="w-5 h-5" weight="bold" />
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar..."
+            value={personalityFilter}
+            onChange={(e) => setPersonalityFilter(e.target.value)}
+            className="w-full bg-slate-900/90 backdrop-blur-xl border-2 border-slate-600/50 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all duration-300 text-sm"
+          />
+        </div>
         
-        <div className="max-h-96 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-purple-500/50 scrollbar-track-transparent pr-2">
-          {filteredPersonalities.map(p => (
-            <SelectableCard
-              key={p.id}
-              title={p.title}
-              description={p.description}
-              isSelected={selectedPersonalityId === p.id}
-              onSelect={() => onPersonalitySelect(p.id)}
-              icon={<Robot className="w-5 h-5 text-purple-400" weight="bold" />}
-            />
-          ))}
+        <div className="max-h-[500px] overflow-y-auto space-y-2.5 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent pr-2">
+          {filteredPersonalities.length > 0 ? (
+            filteredPersonalities.map(p => (
+              <SelectableCard
+                key={p.id}
+                title={p.title}
+                description={p.description}
+                isSelected={selectedPersonalityId === p.id}
+                onSelect={() => onPersonalitySelect(p.id)}
+                icon={<Robot className="w-5 h-5 text-cyan-400" weight="bold" />}
+              />
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-400 text-sm">No se encontraron personalidades</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Columna de Temas */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-blue-400" weight="bold" />
+      {/* Columna de Temas - Ahora ocupa 2/3 del espacio */}
+      <div className="lg:col-span-2 space-y-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <BookOpen className="w-6 h-6 text-white" weight="bold" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-white">2. Tema de Juego</h3>
-            <p className="text-sm text-gray-400">¿De qué hablarán las cartas?</p>
+            <h3 className="text-xl font-black text-white leading-tight">2. Tema del Juego</h3>
+            <p className="text-xs text-gray-400 leading-tight">¿De qué hablarán las cartas?</p>
           </div>
         </div>
         
-        <Input
-          type="text"
-          placeholder="Buscar tema..."
-          value={topicFilter}
-          onChange={(e) => setTopicFilter((e.target as HTMLInputElement).value)}
-          icon={<MagnifyingGlass className="w-5 h-5" weight="bold" />}
-        />
+        <div className="relative">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none">
+            <MagnifyingGlass className="w-5 h-5" weight="bold" />
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar por título o descripción..."
+            value={topicFilter}
+            onChange={(e) => setTopicFilter(e.target.value)}
+            className="w-full bg-slate-900/90 backdrop-blur-xl border-2 border-slate-600/50 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 text-sm"
+          />
+        </div>
         
-        <div className="max-h-96 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-purple-500/50 scrollbar-track-transparent pr-2">
-          {filteredTopics.map(t => (
-            <SelectableCard
-              key={t.id}
-              title={t.title}
-              description={t.prompt}
-              isSelected={selectedTopicId === t.id}
-              onSelect={() => onTopicSelect(t.id)}
-              icon={<BookOpen className="w-5 h-5 text-blue-400" weight="bold" />}
-            />
-          ))}
+        <div className="max-h-[500px] overflow-y-auto space-y-2.5 scrollbar-thin scrollbar-thumb-blue-500/50 scrollbar-track-transparent pr-2">
+          {filteredTopics.length > 0 ? (
+            filteredTopics.map(t => (
+              <SelectableCard
+                key={t.id}
+                title={t.title}
+                description={t.prompt}
+                isSelected={selectedTopicId === t.id}
+                onSelect={() => onTopicSelect(t.id)}
+                icon={<BookOpen className="w-5 h-5 text-blue-400" weight="bold" />}
+              />
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-400 text-sm">No se encontraron temas</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

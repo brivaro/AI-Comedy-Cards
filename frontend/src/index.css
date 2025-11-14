@@ -2,10 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fondo animado con cuadrícula */
+/* Fondo animado con cuadrícula - Tonos azules */
 @layer base {
   body {
-    @apply bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950;
+    @apply bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950;
     background-attachment: fixed;
   }
   
@@ -14,8 +14,8 @@
     position: fixed;
     inset: 0;
     background-image: 
-      linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+      linear-gradient(rgba(86, 189, 219, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(86, 189, 219, 0.05) 1px, transparent 1px);
     background-size: 50px 50px;
     pointer-events: none;
     z-index: 0;
@@ -29,7 +29,7 @@
   }
   
   .glass-card {
-    @apply glass rounded-2xl shadow-2xl shadow-purple-500/10;
+    @apply glass rounded-2xl shadow-2xl shadow-cyan-500/10;
   }
   
   .glass-strong {
@@ -43,15 +43,15 @@
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.3);
+  background: rgba(7, 46, 87, 0.3);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.5);
+  background: rgba(86, 189, 219, 0.5);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.7);
+  background: rgba(86, 189, 219, 0.7);
 }
 
 /* Animaciones adicionales */
@@ -75,9 +75,9 @@
 
 /* Efectos hover mejorados */
 .hover-lift {
-  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/20;
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/20;
 }
 
 .hover-glow {
-  @apply transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50;
+  @apply transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50;
 }

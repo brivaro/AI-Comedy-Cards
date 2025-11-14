@@ -49,7 +49,7 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ onClose, onTopicCre
     <Modal onClose={onClose} size="lg">
       <Card className="glass-strong p-8 border-0">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 mb-4 shadow-lg shadow-purple-500/30">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 mb-4 shadow-lg shadow-cyan-500/30">
             <BookOpen className="w-8 h-8 text-white" weight="bold" />
           </div>
           <h2 className="text-3xl font-black text-white mb-2">Crear Nuevo Tema</h2>
@@ -81,13 +81,13 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ onClose, onTopicCre
             required
           />
 
-          <div className="glass-card rounded-xl p-4 flex items-center gap-3 border border-white/10">
+          <div className="glass-card rounded-xl p-4 flex items-center gap-3 border-2 border-cyan-500/20">
             <input
               id="is_public"
               type="checkbox"
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
-              className="w-5 h-5 rounded bg-transparent border-2 border-purple-500/50 text-purple-500 focus:ring-2 focus:ring-purple-500/50 cursor-pointer"
+              className="w-5 h-5 rounded bg-transparent border-2 border-cyan-500/50 text-cyan-500 focus:ring-2 focus:ring-cyan-500/50 cursor-pointer"
             />
             <label htmlFor="is_public" className="flex items-center gap-2 text-white cursor-pointer flex-1">
               {isPublic ? (
@@ -105,7 +105,7 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ onClose, onTopicCre
           </div>
 
           {error && (
-            <div className="glass-card p-3 rounded-xl border border-red-500/30 bg-red-500/10">
+            <div className="glass-card p-3 rounded-xl border-2 border-red-500/50 bg-red-500/10">
               <p className="text-red-400 text-sm text-center font-medium">{error}</p>
             </div>
           )}

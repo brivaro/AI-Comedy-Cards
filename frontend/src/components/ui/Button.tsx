@@ -23,11 +23,11 @@ export const Button: React.FC<ButtonProps> = ({
   const baseClasses = 'font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 hover-lift disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
   
   const variants = {
-    primary: 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/30',
-    secondary: 'glass-card text-white hover:bg-white/10',
-    danger: 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white shadow-lg shadow-red-500/30',
-    ghost: 'text-purple-300 hover:bg-white/5 border border-transparent hover:border-purple-500/30',
-    success: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-lg shadow-green-500/30'
+    primary: 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/30 border border-cyan-500/20',
+    secondary: 'bg-slate-800/90 border-2 border-slate-600/50 text-white hover:bg-slate-700/90 hover:border-cyan-500/50 backdrop-blur-xl',
+    danger: 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white shadow-lg shadow-red-500/30 border border-red-500/20',
+    ghost: 'text-cyan-300 hover:bg-slate-800/50 border-2 border-transparent hover:border-cyan-500/30 backdrop-blur-xl',
+    success: 'bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white shadow-lg shadow-teal-500/30 border border-teal-500/20'
   };
   
   const sizes = {

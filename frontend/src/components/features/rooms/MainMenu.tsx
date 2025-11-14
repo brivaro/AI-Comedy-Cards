@@ -81,7 +81,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ showToast, onRoomConnected }
   return (
     <>
       <div className="w-full max-w-lg animate-fade-in">
-        <Card className="glass-strong p-8 border border-white/20">
+        <Card className="glass-strong p-8 border-2 border-cyan-500/20">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-black text-white mb-2">
               ¡Hora de jugar!
@@ -127,7 +127,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ showToast, onRoomConnected }
                 onChange={(e) => setJoinCode((e.target as HTMLInputElement).value.toUpperCase())}
                 placeholder="CÓDIGO DE SALA"
                 maxLength={6}
-                className="text-center tracking-[0.3em] text-2xl font-bold"
+                className="text-center tracking-[0.3em] text-2xl font-bold uppercase"
                 icon={<SignIn className="w-5 h-5" weight="bold" />}
               />
               <Button

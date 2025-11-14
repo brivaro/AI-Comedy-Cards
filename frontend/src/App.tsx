@@ -93,7 +93,7 @@ const App: React.FC = () => {
       
       case GameState.InGame:
         if (!room || !user) return <Spinner text="Cargando partida..." />;
-        return <GameBoard room={room} currentUser={user} myHand={myHand} onLeaveGame={resetToMainMenu} />;
+        return <GameBoard room={room} currentUser={user} onLeaveGame={resetToMainMenu} />;
       
       case GameState.MainMenu:
       default:

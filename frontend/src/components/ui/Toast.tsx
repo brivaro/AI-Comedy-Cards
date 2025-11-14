@@ -32,7 +32,7 @@ export const Toast: React.FC<ToastProps> = ({ message, show, type = 'info', onCl
   const colors = {
     success: 'from-green-500/90 to-emerald-500/90 border-green-400/50',
     error: 'from-red-500/90 to-rose-500/90 border-red-400/50',
-    info: 'from-purple-500/90 to-blue-500/90 border-purple-400/50'
+    info: 'from-cyan-500/90 to-blue-500/90 border-cyan-400/50'
   };
 
   return (

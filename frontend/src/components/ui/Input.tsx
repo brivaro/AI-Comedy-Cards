@@ -18,7 +18,7 @@ export const Input: React.FC<InputProps> = ({
   className,
   ...props
 }) => {
-  const baseClasses = 'w-full glass-card rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-300';
+  const baseClasses = 'w-full bg-slate-900/90 backdrop-blur-xl border-2 border-slate-700/50 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all duration-300';
   
   const Component = multiline ? 'textarea' : 'input';
 
@@ -31,7 +31,7 @@ export const Input: React.FC<InputProps> = ({
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400">
             {icon}
           </div>
         )}
@@ -39,7 +39,7 @@ export const Input: React.FC<InputProps> = ({
           className={clsx(
             baseClasses,
             icon && 'pl-12',
-            error && 'ring-2 ring-red-500/50 border-red-500/50',
+            error && 'ring-2 ring-red-500/50 border-red-500',
             className
           )}
           {...(multiline ? { rows } : {})}

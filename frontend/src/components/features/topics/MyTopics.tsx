@@ -42,7 +42,7 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
         <Card className="glass-strong p-8 border-0 max-h-[85vh] flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
                 <BookOpen className="w-6 h-6 text-white" weight="bold" />
               </div>
               <div>
@@ -60,13 +60,13 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
             </Button>
           </div>
           
-          <div className="flex-grow overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-500/50 scrollbar-track-transparent">
+          <div className="flex-grow overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent">
             {isLoading ? (
               <Spinner text="Cargando tus temas..." />
             ) : topics.length > 0 ? (
               <div className="space-y-3">
                 {topics.map(topic => (
-                  <div key={topic.id} className="glass-card rounded-2xl p-6 border border-white/10 hover-lift">
+                  <div key={topic.id} className="glass-card rounded-2xl p-6 border-2 border-cyan-500/10 hover-lift">
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-xl font-bold text-white mb-1 truncate">{topic.title}</h3>
@@ -74,8 +74,8 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
                       </div>
                       <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-bold text-xs ${
                         topic.is_public 
-                          ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                          : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                          ? 'bg-green-500/20 text-green-400 border-2 border-green-500/30' 
+                          : 'bg-gray-500/20 text-gray-400 border-2 border-gray-500/30'
                       }`}>
                         {topic.is_public ? (
                           <>
@@ -96,8 +96,8 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center mb-4">
-                  <BookOpen className="w-10 h-10 text-purple-400" weight="bold" />
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center mb-4">
+                  <BookOpen className="w-10 h-10 text-cyan-400" weight="bold" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">No tienes temas aún</h3>
                 <p className="text-gray-400 mb-6">¡Crea tu primer tema personalizado!</p>
