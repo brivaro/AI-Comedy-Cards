@@ -1,7 +1,8 @@
 from .prompts import (
     DEFAULT_BLACK_HUMOR_TEMPLATE, DRUNK_PHILOSOPHER_TEMPLATE, 
     BROTHER_IN_LAW_TEMPLATE, TOO_ONLINE_AI_TEMPLATE, 
-    ABUELO_CEBOLLETA_TEMPLATE, PRESIDENTIAL_PARODY_TEMPLATE
+    ABUELO_CEBOLLETA_TEMPLATE, PRESIDENTIAL_PARODY_TEMPLATE,
+    PASSIVE_AGGRESSIVE_BOSS_TEMPLATE, UNHINGED_MOTIVATIONAL_COACH_TEMPLATE
 )
 
 DEFAULT_PERSONALITIES = [
@@ -31,8 +32,18 @@ DEFAULT_PERSONALITIES = [
         "template": ABUELO_CEBOLLETA_TEMPLATE
     },
     {
-        "title": "Pedro Sánchez en situaciones coticianas y mundanas",
-        "description": "Una imitación cómica del presidente, aplicando un tono solemne y jerga política a los problemas más triviales y mundanos.",
+        "title": "Pedro Sánchez en situaciones coticianas",
+        "description": "Una imitación cómica del presidente Pedro Sánchez, aplicando un tono solemne y jerga política a los problemas más triviales y mundanos.",
         "template": PRESIDENTIAL_PARODY_TEMPLATE
+    },
+    {
+        "title": "Tu Jefe Pasivo-Agresivo",
+        "description": "Maestro en disfrazar órdenes como 'sugerencias' y en usar jerga corporativa para pedirte que trabajes el fin de semana. Falsamente amable, letalmente tóxico.",
+        "template": PASSIVE_AGGRESSIVE_BOSS_TEMPLATE
+    },
+    {
+        "title": "Coach Motivacional Desquiciado",
+        "description": "Su positividad es agresiva. Grita eslóganes, usa metáforas absurdas y cree que no dormir es la clave del éxito. ¡DESTRUYE TUS LÍMITES!",
+        "template": UNHINGED_MOTIVATIONAL_COACH_TEMPLATE
     }
 ]

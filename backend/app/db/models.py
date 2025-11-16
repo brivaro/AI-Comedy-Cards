@@ -77,7 +77,7 @@ class Card(Base):
     text = Column(Text, nullable=False)
     card_type = Column(String, nullable=False) # 'response' (blanca) o 'theme' (negra)
     
-    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False)
+    topic_id = Column(Integer, ForeignKey("topics.id", ondelete="CASCADE"), nullable=False)
     topic = relationship("Topic", back_populates="response_cards")
 
 # TABLA INTERMEDIA: Para representar la mano de un jugador
