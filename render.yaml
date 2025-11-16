@@ -1,36 +1,28 @@
 services:
-  # Base de Datos PostgreSQL
-  # Se usa 'type: db' para definir una base de datos gestionada.
-  - type: db
-    name: comedy_cards_db
-    postgresMajorVersion: 18
-    plan: free
-
-  # Web Service para el Backend de FastAPI
+  # El Blueprint SOLO gestionará el servicio web.
+  # La base de datos ya existe y la conectaremos manualmente.
   - type: web
-    name: comedy_cards_backend
+    name: comedy-cards-backend
     runtime: docker
     plan: free
-    region: frankfurt
+    region: frankfurt # Asegúrate de que es la misma región que tu BD
     
-    # Configuración de la build
+    # Configuración de la build (esto está bien)
     dockerfilePath: ./backend/Dockerfile
     
     # Variables de Entorno
     envVars:
-      # Conecta el backend a la base de datos
+      # Tratamos la URL de la BD como un secreto.
+      # Render esperará que introduzcas este valor en el dashboard.
       - key: DATABASE_URL
-        fromService:
-          type: db # El tipo del servicio del que obtenemos el dato
-          name: comedy_cards_db
-          property: internalConnectionString
+        sync: false
           
-      # Variables para CORS y Python
+      # El resto de variables están bien
       - key: VERCEL_FRONTEND_URL
         value: https://ai-comedy-cards.vercel.app
       - key: PYTHON_VERSION
         value: 3.10.13
-
+        
       # Secretos (los valores se añadirán desde el dashboard de Render)
       - key: GEMINI_API_KEY
         sync: false
