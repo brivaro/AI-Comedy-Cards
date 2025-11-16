@@ -9,6 +9,7 @@ import { Room } from '../../../types';
 import { AuthForm } from '../../features/auth/AuthForm';
 import MyTopics from '../topics/MyTopics';
 import { useDev } from '../../../context/DevContext';
+import GameBackgroundCharacter from '../../ui/GameBackgroundCharacter';
 
 interface MainMenuProps {
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
@@ -90,16 +91,20 @@ export const MainMenu: React.FC<MainMenuProps> = ({ showToast, onRoomConnected }
 
   if (!user) {
     return (
-      <AuthForm
-        onLogin={(u, p) => handleAuthAction('login', u, p)}
-        onRegister={(u, p) => handleAuthAction('register', u, p)}
-        isLoading={isLoading}
-      />
+      <>
+        <GameBackgroundCharacter />
+        <AuthForm
+          onLogin={(u, p) => handleAuthAction('login', u, p)}
+          onRegister={(u, p) => handleAuthAction('register', u, p)}
+          isLoading={isLoading}
+        />
+      </>
     );
   }
 
   return (
     <>
+      <GameBackgroundCharacter />
       <div className="min-h-[calc(100vh-9rem)] flex items-center justify-center w-full px-4 animate-fade-in">
         <div className="w-full max-w-md">
           {/* Usamos glass-strong para un efecto más destacado */}

@@ -151,7 +151,7 @@ async def start_game(db: Session, room_code: str, player_id: int, payload: dict)
     if not room.personality_id:
         await manager.send_to_player(room_code, player_id, {"type": "error", "data": {"message": "Debes elegir una personalidad para la IA antes de empezar."}})
         return
-    if len(room.players) < constants.MIN_PLAYERS:
+    if len([p for p in room.players if not p.is_spectating]) < constants.MIN_PLAYERS:
         await manager.send_to_player(room_code, player_id, {"type": "error", "data": {"message": f"Faltan jugadores (mínimo {constants.MIN_PLAYERS})."}})
         return
 
@@ -165,12 +165,11 @@ async def start_game(db: Session, room_code: str, player_id: int, payload: dict)
     logging.info(f"Iniciando partida en sala {room_code} con el tema '{topic.title}' y la personalidad '{personality.title}'.")
     
     try:
-        room.game_state = "InGame"
-        room.round_phase = "ThemeSelection"
+        # CAMBIO: Establecer estado a "Generating" y notificar inmediatamente
+        room.game_state = "Generating"
+        db.commit()
+        await broadcast_game_state(db, room_code)
 
-        #response_needed = len(room.players) * constants.INITIAL_HAND_SIZE
-        #theme_needed = len(room.players) * 2
-        
         response_needed = INITIAL_RESPONSE_CARD_BUFFER
         theme_needed = INITIAL_THEME_CARD_BUFFER
 
@@ -180,6 +179,10 @@ async def start_game(db: Session, room_code: str, player_id: int, payload: dict)
             gemini.generate_cards_for_topic(topic.prompt, personality.template_prompt, 'response', response_needed),
             gemini.generate_cards_for_topic(topic.prompt, personality.template_prompt, 'theme', theme_needed) 
         )
+
+        # Establecer el estado final del juego antes de repartir
+        room.game_state = "InGame"
+        room.round_phase = "ThemeSelection"
 
         # Crear y añadir todas las cartas nuevas a la sesión
         new_cards = []
@@ -194,10 +197,11 @@ async def start_game(db: Session, room_code: str, player_id: int, payload: dict)
         card_idx = 0
         new_player_cards = []
         for p in room.players:
-            for _ in range(constants.INITIAL_HAND_SIZE):
-                if card_idx < len(all_response_cards):
-                    new_player_cards.append(models.PlayerCard(player_id=p.id, card_id=all_response_cards[card_idx].id))
-                    card_idx += 1
+            if not p.is_spectating: # Solo repartir a jugadores activos
+                for _ in range(constants.INITIAL_HAND_SIZE):
+                    if card_idx < len(all_response_cards):
+                        new_player_cards.append(models.PlayerCard(player_id=p.id, card_id=all_response_cards[card_idx].id))
+                        card_idx += 1
         db.add_all(new_player_cards)
         
         db.commit()
@@ -206,8 +210,10 @@ async def start_game(db: Session, room_code: str, player_id: int, payload: dict)
     except Exception as e:
         logging.error(f"Error crítico al iniciar la partida en {room_code}. Revirtiendo cambios. Error: {e}", exc_info=True)
         db.rollback()
-        if room:
-            room.game_state = "Lobby"
+        # Asegurarse de que la sala vuelve al estado Lobby si algo falla
+        room_after_fail = crud.get_room_by_code(db, room_code)
+        if room_after_fail:
+            room_after_fail.game_state = "Lobby"
             db.commit()
 
 

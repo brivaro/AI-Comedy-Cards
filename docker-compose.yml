@@ -40,18 +40,6 @@ services:
       - backend
     networks:
       - app-network
-      
-  # Servicio Nginx (más útil para producción, opcional en desarrollo)
-  # nginx:
-  #   container_name: comedy_cards_nginx
-  #   build: ./frontend # Usa el mismo Dockerfile multi-stage
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - backend
-  #     - frontend
-  #   networks:
-  #     - app-network
 
 networks:
   app-network:

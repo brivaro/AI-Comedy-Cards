@@ -9,14 +9,16 @@ import { Header } from './components/layout/Header';
 import { GameState, Room, PlayerHandCard } from './types';
 import { useAuth } from './context/AuthContext';
 import { websocketService } from './services/websocketService';
+import AIRobotLoader from './components/ui/AIRobotLoader'; 
 // DEV IMPORTS
 import { useDev } from './context/DevContext';
 import { DevPanel } from './components/dev/DevPanel';
 import * as devMocks from './mocks/devMocks';
 
-
 const App: React.FC = () => {
-  const [hasAgreed, setHasAgreed] = useState<boolean>(false);
+  const [hasAgreed, setHasAgreed] = useState<boolean>(() => {
+    return localStorage.getItem('disclaimerAgreed') === 'true';
+  });
   const [currentView, setCurrentView] = useState<GameState>(GameState.MainMenu);
   const [room, setRoom] = useState<Room | null>(null);
   const [myHand, setMyHand] = useState<PlayerHandCard[]>([]);
@@ -58,9 +60,12 @@ const App: React.FC = () => {
 
     websocketService.onGameStateUpdate = (newRoomState) => {
       setRoom(newRoomState);
-      const newView = newRoomState.game_state === 'InGame' ? GameState.InGame : GameState.Lobby;
-      setCurrentView(newView);
-      setIsLoading(false);
+
+      if (newRoomState.game_state !== 'Generating') {
+        const newView = newRoomState.game_state === 'InGame' ? GameState.InGame : GameState.Lobby;
+        setCurrentView(newView);
+        setIsLoading(false);
+      }
     };
 
     websocketService.onPlayerHandUpdate = (hand) => {
@@ -105,12 +110,16 @@ const App: React.FC = () => {
     }
   }, [dev.isDevMode]);
 
+  const handleAgreeToDisclaimer = () => {
+    localStorage.setItem('disclaimerAgreed', 'true');
+    setHasAgreed(true);
+  };
 
   if (!hasAgreed) {
     if (dev.isDevMode && dev.currentView !== null) {
-      // no hacer nada, dejar que renderContent lo maneje
+      // no hacer nada
     } else {
-       return <Disclaimer onAgree={() => setHasAgreed(true)} />;
+       return <Disclaimer onAgree={handleAgreeToDisclaimer} />;
     }
   }
 
@@ -163,8 +172,6 @@ const App: React.FC = () => {
 
   const activeUser = dev.isDevMode ? dev.mockUser : user;
   const viewForLayout = dev.isDevMode ? (dev.currentView ?? GameState.MainMenu) : currentView;
-  
-  // Determina la variante del header según la vista
   const headerVariant = (viewForLayout === GameState.Lobby || viewForLayout === GameState.InGame) 
     ? 'solid' 
     : 'glass';
@@ -173,12 +180,17 @@ const App: React.FC = () => {
     <div className="h-screen flex flex-col">
       <Header username={activeUser?.username} onLogout={dev.isDevMode ? undefined : handleLogout} variant={headerVariant} />
       
-      {/* CAMBIO: Añadido pb-8 para un margen inferior consistente en todas las vistas */}
       <main className="flex-grow min-h-0 px-8 pt-[100px] pb-8">
         <div className={`${viewForLayout === GameState.Lobby || viewForLayout === GameState.InGame ? 'w-full' : 'max-w-7xl mx-auto'} h-full`}>
           {renderContent()}
         </div>
       </main>
+
+      {room?.game_state === 'Generating' && !dev.isDevMode && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-[100] animate-fade-in">
+          <AIRobotLoader />
+        </div>
+      )}
 
       <Toast message={toast.message} show={toast.show} type={toast.type} />
       <DevPanel />

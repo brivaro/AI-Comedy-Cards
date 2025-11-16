@@ -89,7 +89,7 @@ export default function AIRobotLoader() {
   const rightArmSwing = Math.sin((armRotation + 180) * Math.PI / 180) * 20;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="flex flex-col items-center justify-center">
       <div 
         className="relative transition-transform duration-100 ease-linear"
         style={{ transform: `translateX(${position}px)` }}
