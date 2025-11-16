@@ -18,7 +18,7 @@ export default function GameBackgroundCharacter() {
           setWaving(true);
           return window.innerWidth - 60;
         }
-        return prev + 3;
+        return prev + 1.5;
       });
       animationFrame = requestAnimationFrame(animate);
     };
