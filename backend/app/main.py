@@ -4,6 +4,7 @@ import logging
 
 from .routers import auth, rooms, topics, game_ws, personalities
 from .start_routines import lifespan
+from .core.config import settings
 
 # Configuración de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -13,6 +14,7 @@ app = FastAPI(title="AI Comedy Cards API", lifespan=lifespan)
 origins = [
     "http://localhost:5173",
     "http://localhost",
+    settings.VERCEL_FRONTEND_URL
 ]
 
 app.add_middleware(
