@@ -9,6 +9,11 @@ import { Header } from './components/layout/Header';
 import { GameState, Room, PlayerHandCard } from './types';
 import { useAuth } from './context/AuthContext';
 import { websocketService } from './services/websocketService';
+// DEV IMPORTS
+import { useDev } from './context/DevContext';
+import { DevPanel } from './components/dev/DevPanel';
+import * as devMocks from './mocks/devMocks';
+
 
 const App: React.FC = () => {
   const [hasAgreed, setHasAgreed] = useState<boolean>(false);
@@ -23,19 +28,25 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
   const { user, accessToken, isLoading: isAuthLoading, logout } = useAuth();
+  // DEV HOOK
+  const dev = useDev();
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    // En modo dev, también se muestra en la consola
+    if (dev.isDevMode) console.log(`[DEV TOAST - ${type.toUpperCase()}]: ${message}`);
     setToast({ message, show: true, type });
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
-  }, []);
+  }, [dev.isDevMode]);
 
   const resetToMainMenu = useCallback(() => {
-    websocketService.disconnect();
+    if (!dev.isDevMode) {
+      websocketService.disconnect();
+    }
     setRoom(null);
     setMyHand([]);
     setCurrentView(GameState.MainMenu);
     setIsLoading(false);
-  }, []);
+  }, [dev.isDevMode]);
 
   const handleLogout = () => {
     logout();
@@ -43,6 +54,8 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    if (dev.isDevMode) return; // No configurar websockets en modo dev
+
     websocketService.onGameStateUpdate = (newRoomState) => {
       setRoom(newRoomState);
       const newView = newRoomState.game_state === 'InGame' ? GameState.InGame : GameState.Lobby;
@@ -67,9 +80,17 @@ const App: React.FC = () => {
     return () => {
       websocketService.disconnect();
     };
-  }, [showToast, resetToMainMenu]);
+  }, [showToast, resetToMainMenu, dev.isDevMode]);
 
   const handleConnectToRoom = (roomData: Room) => {
+    if (dev.isDevMode) {
+        setIsLoading(true);
+        setTimeout(() => {
+            setCurrentView(GameState.Lobby);
+            setIsLoading(false);
+        }, 500);
+        return;
+    }
     if (accessToken) {
       setIsLoading(true);
       websocketService.connect(roomData.code, accessToken);
@@ -77,12 +98,46 @@ const App: React.FC = () => {
       showToast("Error de autenticación. Intenta iniciar sesión de nuevo.", 'error');
     }
   };
+  
+  useEffect(() => {
+    if (dev.isDevMode) {
+      setHasAgreed(true);
+    }
+  }, [dev.isDevMode]);
+
 
   if (!hasAgreed) {
-    return <Disclaimer onAgree={() => setHasAgreed(true)} />;
+    if (dev.isDevMode && dev.currentView !== null) {
+      // no hacer nada, dejar que renderContent lo maneje
+    } else {
+       return <Disclaimer onAgree={() => setHasAgreed(true)} />;
+    }
   }
 
   const renderContent = () => {
+    // LÓGICA DE RENDERIZADO EN MODO DEV
+    if (dev.isDevMode) {
+      const devView = dev.currentView;
+      const devShowToast = (msg: string, type: any = 'info') => console.log(`[DEV TOAST - ${type.toUpperCase()}]: ${msg}`);
+      
+      if (devView === null) {
+          return <Disclaimer onAgree={() => dev.setCurrentView(GameState.MainMenu)} />;
+      }
+
+      switch (devView) {
+        case GameState.Lobby:
+          return <Lobby room={dev.mockRoom} currentUser={dev.mockUser} onLeave={() => dev.setCurrentView(GameState.MainMenu)} showToast={devShowToast} />;
+        
+        case GameState.InGame:
+          return <GameBoard room={dev.mockRoom} currentUser={dev.mockUser} myHand={devMocks.mockMyHand} onLeaveGame={() => dev.setCurrentView(GameState.MainMenu)} />;
+        
+        case GameState.MainMenu:
+        default:
+          return <MainMenu showToast={devShowToast} onRoomConnected={() => dev.setCurrentView(GameState.Lobby)} />;
+      }
+    }
+    
+    // LÓGICA DE RENDERIZADO ORIGINAL
     if (isAuthLoading || isLoading) {
       return (
         <div className="min-h-[60vh] flex items-center justify-center">
@@ -106,17 +161,27 @@ const App: React.FC = () => {
     }
   };
 
+  const activeUser = dev.isDevMode ? dev.mockUser : user;
+  const viewForLayout = dev.isDevMode ? (dev.currentView ?? GameState.MainMenu) : currentView;
+  
+  // Determina la variante del header según la vista
+  const headerVariant = (viewForLayout === GameState.Lobby || viewForLayout === GameState.InGame) 
+    ? 'solid' 
+    : 'glass';
+
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <Header username={user?.username} onLogout={handleLogout} />
+    <div className="h-screen flex flex-col">
+      <Header username={activeUser?.username} onLogout={dev.isDevMode ? undefined : handleLogout} variant={headerVariant} />
       
-      <main className="flex-grow min-h-0 px-8 pt-[100px]">
-        <div className={currentView === GameState.Lobby || currentView === GameState.InGame? 'w-full' : 'max-w-7xl mx-auto'}>
+      {/* CAMBIO: Añadido pb-8 para un margen inferior consistente en todas las vistas */}
+      <main className="flex-grow min-h-0 px-8 pt-[100px] pb-8">
+        <div className={`${viewForLayout === GameState.Lobby || viewForLayout === GameState.InGame ? 'w-full' : 'max-w-7xl mx-auto'} h-full`}>
           {renderContent()}
         </div>
       </main>
 
       <Toast message={toast.message} show={toast.show} type={toast.type} />
+      <DevPanel />
     </div>
   );
 };

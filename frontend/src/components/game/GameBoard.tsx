@@ -51,10 +51,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
 
   const handleSubmitCustomTheme = (e: React.FormEvent) => {
     e.preventDefault();
-    if (customThemeText.trim().includes('______') && customThemeText.trim().length > 10) {
+    if (customThemeText.trim().length > 10) {
       websocketService.sendMessage('submit_custom_theme', { text: customThemeText.trim() });
     } else {
-      showToast("El tema debe incluir '______' y tener más de 10 caracteres.", 'error');
+      showToast("El tema debe incluir más de 10 caracteres.", 'error');
     }
   };
 
@@ -163,8 +163,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
     <>
       <div className="w-full min-h-[calc(100vh-180px)] lg:h-[calc(100vh-180px)] grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 animate-fade-in">
         
-        <div className="lg:col-span-1 flex flex-col gap-4 overflow-hidden">
-          <Card className="glass-card p-4 rounded-2xl flex-1 flex flex-col overflow-hidden">
+        <div className="lg:col-span-1 flex flex-col gap-4 ">
+          <Card className="glass-card p-4 rounded-2xl flex-1 flex flex-col ">
             <h3 className="text-base font-bold text-white mb-3 pb-2 border-b border-cyan-500/20 flex items-center gap-2 flex-shrink-0">
               <Trophy className="w-5 h-5 text-cyan-400" weight="bold" /> PUNTUACIONES
             </h3>
@@ -209,9 +209,11 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
           
           <ThemeDisplay themeCard={room.current_theme_card} themeMasterName={themeMaster?.username} />
           
-          <Card className="glass-strong rounded-2xl border-2 border-cyan-500/10 flex-1 min-h-0 overflow-hidden">
-            <div className="h-full w-full flex items-center justify-center p-4 md:p-6">
-              {renderMainArea()}
+          <Card className="glass-strong rounded-2xl border-2 border-cyan-500/10 flex-1 min-h-0 ">
+            <div className="h-full w-full overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent">
+              <div className="flex items-center justify-center min-h-full">
+                {renderMainArea()}
+              </div>
             </div>
           </Card>
         </div>

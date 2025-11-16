@@ -33,7 +33,7 @@ const SelectableCard: React.FC<SelectableCardProps> = ({
   return (
     <div
       onClick={onSelect}
-      className={`glass-card rounded-xl p-4 border-2 cursor-pointer transition-all duration-300 relative overflow-hidden group ${
+      className={`glass-card rounded-xl p-4 border-2 cursor-pointer transition-all duration-300 relative group overflow-hidden ${
         isSelected 
           ? 'border-cyan-400 ring-2 ring-cyan-500/50 shadow-xl shadow-cyan-500/30 scale-[1.02]' 
           : 'border-slate-600/30 hover:border-cyan-500/50 hover:scale-[1.01] hover:shadow-lg hover:shadow-cyan-500/10'
@@ -107,10 +107,9 @@ const GameSettingsSelector: React.FC<GameSettingsSelectorProps> = ({
   });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-180px)] max-h-[calc(100vh-180px)] overflow-hidden">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
 
-      {/* Columna Personalidades */}
-      <div className="flex flex-col space-y-4 h-full overflow-hidden">
+      <div className="flex flex-col space-y-4 h-full">
         <div className="flex items-center gap-3 mb-3 flex-shrink-0">
           <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
             <Robot className="w-6 h-6 text-white" weight="bold" />
@@ -134,7 +133,8 @@ const GameSettingsSelector: React.FC<GameSettingsSelectorProps> = ({
           />
         </div>
 
-        <div className="flex-grow min-h-0 overflow-y-auto space-y-2.5 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent pr-2">
+        {/* CAMBIO: Se añade una altura máxima calculada para evitar desbordamientos */}
+        <div className="px-2 py-4 flex-grow min-h-0 overflow-y-auto space-y-2.5 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent pr-6 max-h-[calc(100vh-380px)]">
           {filteredPersonalities.length > 0 ? (
             filteredPersonalities.map(p => (
               <SelectableCard
@@ -154,8 +154,7 @@ const GameSettingsSelector: React.FC<GameSettingsSelectorProps> = ({
         </div>
       </div>
 
-      {/* Columna Temas */}
-      <div className="lg:col-span-2 flex flex-col space-y-4 h-full overflow-hidden">
+      <div className="lg:col-span-2 flex flex-col space-y-4 h-full">
         <div className="flex items-center gap-3 mb-3 flex-shrink-0">
           <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
             <BookOpen className="w-6 h-6 text-white" weight="bold" />
@@ -179,7 +178,8 @@ const GameSettingsSelector: React.FC<GameSettingsSelectorProps> = ({
           />
         </div>
 
-        <div className="flex-grow min-h-0 overflow-y-auto space-y-2.5 scrollbar-thin scrollbar-thumb-blue-500/50 scrollbar-track-transparent pr-2">
+        {/* CAMBIO: Se añade una altura máxima calculada para evitar desbordamientos */}
+        <div className="px-3 py-4 flex-grow min-h-0 overflow-y-auto space-y-2.5 scrollbar-thin scrollbar-thumb-blue-500/50 scrollbar-track-transparent pr-6 max-h-[calc(100vh-380px)]">
           {filteredTopics.length > 0 ? (
             filteredTopics.map(t => (
               <SelectableCard

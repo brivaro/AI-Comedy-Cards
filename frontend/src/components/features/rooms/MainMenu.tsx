@@ -8,6 +8,7 @@ import { Card } from '../../ui/Card';
 import { Room } from '../../../types';
 import { AuthForm } from '../../features/auth/AuthForm';
 import MyTopics from '../topics/MyTopics';
+import { useDev } from '../../../context/DevContext';
 
 interface MainMenuProps {
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
@@ -19,7 +20,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({ showToast, onRoomConnected }
   const [isLoading, setIsLoading] = useState(false);
   const [showTopicsModal, setShowTopicsModal] = useState(false);
   
-  const { login, register, user } = useAuth();
+  const { login, register, user: authUser } = useAuth();
+  const { isDevMode, mockUser } = useDev();
+  
+  const user = isDevMode ? mockUser : authUser;
 
   const handleAuthAction = async (action: 'login' | 'register', username: string, password: string) => {
     setIsLoading(true);
@@ -42,6 +46,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ showToast, onRoomConnected }
 
   const handleCreateRoom = async () => {
     setIsLoading(true);
+    if (isDevMode) {
+      showToast('Creando sala (DEV)...', 'info');
+      setTimeout(() => {
+        onRoomConnected?.({} as Room); // Pasar una sala de prueba
+        setIsLoading(false);
+      }, 500);
+      return;
+    }
     try {
       const response = await apiService.createRoom();
       onRoomConnected?.(response.data);
@@ -57,6 +69,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ showToast, onRoomConnected }
     e.preventDefault();
     if (!joinCode.trim()) return;
     setIsLoading(true);
+     if (isDevMode) {
+      showToast(`Uniéndose a ${joinCode.trim().toUpperCase()} (DEV)...`, 'info');
+      setTimeout(() => {
+        onRoomConnected?.({} as Room); // Pasar una sala de prueba
+        setIsLoading(false);
+      }, 500);
+      return;
+    }
     try {
       const response = await apiService.joinRoom(joinCode.trim().toUpperCase());
       onRoomConnected?.(response.data);

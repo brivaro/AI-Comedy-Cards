@@ -6,11 +6,6 @@ from .prompts import (
 
 DEFAULT_TOPICS = [
     {
-        "title": "Humor Negro Loco",
-        "prompt": DEFAULT_TOPIC_PROMPT,
-        "is_public": True
-    },
-    {
         "title": "Infierno de Oficina (Vida Godínez)",
         "prompt": OFFICE_HELL_TOPIC_PROMPT,
         "is_public": True
@@ -44,5 +39,10 @@ DEFAULT_TOPICS = [
         "title": "Surrealismo Puro",
         "prompt": PURE_SURREALISM_TOPIC_PROMPT,
         "is_public": True
-    }
+    },
+    {
+        "title": "Humor Negro Loco",
+        "prompt": DEFAULT_TOPIC_PROMPT,
+        "is_public": True
+    },
 ]

@@ -31,7 +31,7 @@ export const Input: React.FC<InputProps> = ({
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-100">
             {icon}
           </div>
         )}

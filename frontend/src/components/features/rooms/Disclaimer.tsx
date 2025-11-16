@@ -10,7 +10,7 @@ export const Disclaimer: React.FC<DisclaimerProps> = ({ onAgree }) => {
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-black via-blue-950/50 to-black flex items-center justify-center z-[100] p-4 animate-fade-in overflow-auto">
       {/* Efecto de fondo */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>

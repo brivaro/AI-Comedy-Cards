@@ -9,7 +9,7 @@ interface PlayerHandProps {
 
 const PlayerHand: React.FC<PlayerHandProps> = ({ cards, onPlayCard }) => {
   return (
-    <div className="flex overflow-x-auto gap-4 p-4 justify-center w-full scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-900/50">
+    <div className="flex overflow-x-auto gap-4 px-4 py-2 w-full scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent">
       {cards.map((playerCard) => (
         <div key={playerCard.id} onClick={() => onPlayCard(playerCard)} className="flex-shrink-0">
           <Card 

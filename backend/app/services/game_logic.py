@@ -114,8 +114,8 @@ async def submit_custom_theme(db: Session, room_code: str, player_id: int, paylo
     if room.round_phase != "ThemeSelection":
         logging.warning(f"Intento de enviar tema personalizado fuera de la fase ThemeSelection en sala {room_code}.")
         return
-    if not (10 < len(text) < 280) or "______" not in text:
-        await manager.send_to_player(room_code, player_id, {"type": "error", "data": {"message": "El tema debe tener entre 10 y 280 caracteres e incluir '______'."}})
+    if not (10 < len(text) < 280) in text:
+        await manager.send_to_player(room_code, player_id, {"type": "error", "data": {"message": "El tema debe tener entre 10 y 280 caracteres."}})
         return
     
     try:
