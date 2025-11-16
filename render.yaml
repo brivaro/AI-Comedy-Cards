@@ -21,7 +21,7 @@ services:
         fromService:
           type: pserv
           name: comedy_cards_db
-          property: internalConnectionString # Usa la URL interna
+          property: postgresql://comedy_cards_db_user:KobKWSFWmd4XwpAgGMFD6tZ6tgdi6z5E@dpg-d4d0f0fdiees73cajpkg-a/comedy_cards_db # internalConnectionString # Usa la URL interna
           
       # Variables para CORS y Python
       - key: VERCEL_FRONTEND_URL
