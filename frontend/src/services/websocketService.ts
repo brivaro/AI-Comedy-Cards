@@ -34,11 +34,30 @@ class WebSocketService {
       this.disconnect();
     }
     
-    const proto = window.location.protocol === 'https' ? 'wss' : 'ws';
-    const host = window.location.host;
-    console.log(host);
-    // La ruta del websocket debe coincidir con la de Nginx
-    const wsUrl = `${proto}://${host}/ws/game/${roomCode}?token=${token}`;
+    // --- INICIO DE LA CORRECCIÓN ---
+    // La lógica original solo funcionaba en localhost.
+    // const proto = window.location.protocol === 'https' ? 'wss' : 'ws';
+    // const host = window.location.host;
+    // const wsUrl = `${proto}://${host}/ws/game/${roomCode}?token=${token}`;
+    
+    // Lógica NUEVA y CORRECTA para producción:
+    if (!API_BASE_URL) {
+      console.error("VITE_API_BASE_URL no está definida. La conexión WebSocket fallará.");
+      this.onError("Error de configuración: La URL del servidor no está disponible.");
+      return;
+    }
+
+    // 1. Convertimos la URL de la API HTTP (https://...) a una URL WebSocket (wss://...)
+    const wsUrlObject = new URL(API_BASE_URL);
+    wsUrlObject.protocol = wsUrlObject.protocol.replace('http', 'ws');
+    
+    // 2. Construimos la ruta correcta para el endpoint del WebSocket
+    wsUrlObject.pathname = `/ws/game/${roomCode}`;
+    wsUrlObject.search = `?token=${token}`;
+
+    const wsUrl = wsUrlObject.toString();
+    console.log(`Conectando WebSocket a: ${wsUrl}`);
+    // --- FIN DE LA CORRECCIÓN ---
 
     this.ws = new WebSocket(wsUrl);
 
