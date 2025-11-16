@@ -1,31 +1,33 @@
 services:
   # Base de Datos PostgreSQL
-  - type: pserv # Private Service
-    name: comedy_cards_db # nombre que tiene en render
-    plan: free # O el plan que hayas elegido
-    
+  # Se usa 'type: db' para definir una base de datos gestionada.
+  - type: db
+    name: comedy_cards_db
+    postgresMajorVersion: 18
+    plan: free
+
   # Web Service para el Backend de FastAPI
   - type: web
     name: comedy_cards_backend
     runtime: docker
-    plan: free # Puedes cambiarlo a "Starter" si necesitas más potencia
-    region: frankfurt # Usa la misma región que tu base de datos
+    plan: free
+    region: frankfurt
     
     # Configuración de la build
-    dockerfilePath: ./backend/Dockerfile # Ruta a tu Dockerfile
+    dockerfilePath: ./backend/Dockerfile
     
     # Variables de Entorno
     envVars:
-      # Conecta el backend a la base de datos que creamos
+      # Conecta el backend a la base de datos
       - key: DATABASE_URL
         fromService:
-          type: pserv
+          type: db # El tipo del servicio del que obtenemos el dato
           name: comedy_cards_db
-          property: postgresql://comedy_cards_db_user:KobKWSFWmd4XwpAgGMFD6tZ6tgdi6z5E@dpg-d4d0f0fdiees73cajpkg-a/comedy_cards_db # internalConnectionString # Usa la URL interna
+          property: internalConnectionString
           
       # Variables para CORS y Python
       - key: VERCEL_FRONTEND_URL
-        value: https://ai-comedy-cards.vercel.app/
+        value: https://ai-comedy-cards.vercel.app
       - key: PYTHON_VERSION
         value: 3.10.13
 
@@ -39,6 +41,3 @@ services:
         
     # Health Check para despliegues sin tiempo de inactividad
     healthCheckPath: /api/v1
-    
-    # Comando de inicio que ejecuta migraciones y luego la app
-    startCommand: ./backend/startup.sh uvicorn app.main:app --host 0.0.0.0 --port 8000
