@@ -1,29 +1,25 @@
 services:
-  # El Blueprint SOLO gestionará el servicio web.
-  # La base de datos ya existe y la conectaremos manualmente.
   - type: web
     name: comedy-cards-backend
     runtime: docker
     plan: free
-    region: frankfurt # Asegúrate de que es la misma región que tu BD
+    region: frankfurt
     
-    # Configuración de la build (esto está bien)
+    # Configuración de la build
+    # Le decimos a Render que use la carpeta 'backend' como contexto.
+    buildContext: ./backend
     dockerfilePath: ./backend/Dockerfile
     
     # Variables de Entorno
     envVars:
-      # Tratamos la URL de la BD como un secreto.
-      # Render esperará que introduzcas este valor en el dashboard.
       - key: DATABASE_URL
         sync: false
           
-      # El resto de variables están bien
       - key: VERCEL_FRONTEND_URL
         value: https://ai-comedy-cards.vercel.app
       - key: PYTHON_VERSION
         value: 3.10.13
         
-      # Secretos (los valores se añadirán desde el dashboard de Render)
       - key: GEMINI_API_KEY
         sync: false
       - key: SECRET_KEY
@@ -31,5 +27,5 @@ services:
       - key: ALGORITHM
         value: HS256
         
-    # Health Check para despliegues sin tiempo de inactividad
+    # Health Check
     healthCheckPath: /api/v1
