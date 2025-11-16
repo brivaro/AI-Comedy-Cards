@@ -17,9 +17,13 @@ origins = [
     settings.VERCEL_FRONTEND_URL
 ]
 
+VERCEL_PREVIEW_REGEX = r"https://ai-comedy-cards-*\.vercel\.app"
+origins.append(VERCEL_PREVIEW_REGEX)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=VERCEL_PREVIEW_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
