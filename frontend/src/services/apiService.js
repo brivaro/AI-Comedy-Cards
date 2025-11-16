@@ -23,14 +23,12 @@ api.interceptors.response.use(
   (error) => {
     // Si la respuesta es un error 401 (No Autorizado)
     if (error.response && error.response.status === 401) {
-      console.error("Authentication Error: Token might be expired or invalid.");
-      // Limpiamos el token del almacenamiento local.
-      localStorage.removeItem('accessToken');
-      // Forzamos un refresco de la página. La aplicación se reiniciará
-      // y al no encontrar token, AuthContext redirigirá al login.
-      // Podríamos mostrar un Toast aquí si tuviéramos acceso a esa función.
-      alert("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
-      window.location.href = '/'; 
+      if (!error.config.url.endsWith('/auth/token')) {
+        console.error("Authentication Error: Token might be expired or invalid. Logging out.");
+        // Limpiamos el token del almacenamiento local.
+        localStorage.removeItem('accessToken');
+        window.location.href = '/'; 
+      }
     }
     // Para cualquier otro error, simplemente lo devolvemos para que sea manejado localmente.
     return Promise.reject(error);

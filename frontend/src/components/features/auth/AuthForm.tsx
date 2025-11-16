@@ -39,39 +39,41 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onRegister, isLoadi
   };
 
   return (
-    <div className="min-h-[calc(100vh-120px)] flex items-center justify-center w-full px-4 animate-fade-in">
+    <div className="px-4 min-h-[calc(100vh-9rem)] items-center w-full animate-fade-in flex justify-center">
       <div className="w-full max-w-md">
-        <div className="glass-strong p-8 rounded-3xl border-2 border-cyan-500/30 shadow-2xl shadow-cyan-500/20">
+        <div className="glass-strong p-6 rounded-3xl border-2 border-cyan-500/30 shadow-2xl shadow-cyan-500/20">
           {/* Header del formulario */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 mb-5 shadow-2xl shadow-cyan-500/40 relative overflow-hidden">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 flex items-center justify-center shadow-2xl shadow-cyan-500/40 relative overflow-hidden">
               {/* Efecto de brillo animado */}
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent animate-[shimmer_2s_ease-in-out_infinite]" />
               {isRegistering ? (
-                <UserPlus className="w-10 h-10 text-white relative z-10" weight="bold" />
+                <UserPlus className="w-8 h-8 text-white relative z-10" weight="bold" />
               ) : (
-                <SignIn className="w-10 h-10 text-white relative z-10" weight="bold" />
+                <SignIn className="w-8 h-8 text-white relative z-10" weight="bold" />
               )}
             </div>
-            <h2 className="text-4xl font-black text-transparent bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text mb-3">
-              {isRegistering ? 'Crear Cuenta' : 'Bienvenido'}
-            </h2>
-            <p className="text-gray-300 text-base font-medium">
-              {isRegistering 
-                ? 'Únete a la diversión ahora' 
-                : 'Inicia sesión para continuar'}
-            </p>
+            <div className="flex-1">
+              <h2 className="text-4xl font-black text-transparent bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text leading-tight">
+                {isRegistering ? 'Crear Cuenta' : 'Bienvenido'}
+              </h2>
+              <p className="text-gray-300 text-sm font-medium mt-1">
+                {isRegistering 
+                  ? 'Únete a la diversión ahora' 
+                  : 'Inicia sesión para continuar'}
+              </p>
+            </div>
           </div>
 
           {/* Formulario */}
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* Input de usuario */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-200 ml-1">
                 Nombre de usuario
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-100">
                   <UserIcon className="w-5 h-5" weight="bold" />
                 </div>
                 <input
@@ -92,7 +94,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onRegister, isLoadi
                 Contraseña
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-100">
                   <Lock className="w-5 h-5" weight="bold" />
                 </div>
                 <input

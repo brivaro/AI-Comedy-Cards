@@ -8,31 +8,18 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-cyan-500/20">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo y Título Mejorado */}
+    <header className="fixed top-0 left-0 right-0 z-50">
+      <div className="absolute inset-0 backdrop-blur-2xl bg-gradient-to-b from-black/40 via-black/20 to-transparent"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+      <div className="relative w-full px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          {/* Icono con efecto lava lamp */}
-          <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl shadow-cyan-500/40 overflow-hidden">
-            {/* Efecto lava lamp animado */}
-            <div className="absolute inset-0 opacity-60">
-              <div className="absolute w-20 h-20 bg-cyan-300 rounded-full blur-xl animate-[float_4s_ease-in-out_infinite]" 
-                   style={{ top: '20%', left: '10%' }} />
-              <div className="absolute w-16 h-16 bg-blue-400 rounded-full blur-xl animate-[float_5s_ease-in-out_infinite_0.5s]" 
-                   style={{ bottom: '10%', right: '20%' }} />
-              <div className="absolute w-12 h-12 bg-purple-400 rounded-full blur-xl animate-[float_6s_ease-in-out_infinite_1s]" 
-                   style={{ top: '40%', right: '15%' }} />
-            </div>
-            <span className="text-5xl relative z-10">🎭</span>
-          </div>
-          
-          {/* Título más grande con gradiente mejorado */}
+            <span className="text-5xl relative z-10 drop-shadow-[0_0_20px_rgba(34,211,238,0.4)]">🎭</span>
           <div>
-            <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent leading-tight">
-              AI Comedy Cards
+            <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-cyan-200 via-blue-200 to-purple-200 bg-clip-text text-transparent leading-tight drop-shadow-[0_0_30px_rgba(34,211,238,0.5)] tracking-tight">
+              CardsAI
             </h1>
-            <p className="text-xs md:text-sm text-cyan-400/80 font-semibold tracking-wide">
-              Humor generado por IA
+            <p className="text-xs md:text-sm text-cyan-300 font-bold tracking-wider drop-shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+              Crea y juega con amigos
             </p>
           </div>
         </div>

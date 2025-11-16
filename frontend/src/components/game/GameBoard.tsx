@@ -26,7 +26,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
     type: 'info' 
   });
 
-  // --- Datos derivados para facilitar el renderizado ---
   const myPlayerDetails = room.players.find(p => p.username === currentUser.username);
   const themeMaster = room.players.find(p => p.id === room.theme_master_id);
   const sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
@@ -38,7 +37,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
   }, []);
 
-  // --- Handlers de Acciones del Juego ---
   const handlePlayCard = (playerCard: PlayerHandCard) => {
     websocketService.sendMessage('play_card', { player_card_id: playerCard.id });
   };
@@ -64,7 +62,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
     websocketService.sendMessage('start_next_round', {});
   };
 
-  // --- Renderizado del Área Principal de Juego ---
   const renderMainArea = () => {
     if (amSpectating) {
       return (
@@ -81,24 +78,26 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
       case RoundPhase.ThemeSelection:
         if (isThemeMaster) {
           return (
-            <div className="text-center animate-fade-in w-full max-w-3xl mx-auto">
-              <h2 className="text-2xl font-bold text-white mb-2">Tu turno, Maestro del Tema</h2>
-              <p className="text-gray-400 mb-6">Elige una opción para la carta de tema de esta ronda.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-                <div className="glass-card p-6 rounded-2xl flex flex-col items-center justify-between border-2 border-cyan-500/20">
-                  <p className="mb-4 text-center">Dejar que la IA elija una carta de tema aleatoria.</p>
+            <div className="text-center animate-fade-in w-full max-w-4xl mx-auto">
+              <h2 className="text-xl md:text-2xl font-bold text-white mb-2">Tu turno, Maestro del Tema</h2>
+              <p className="text-gray-400 mb-4 sm:mb-6">Elige una opción para la carta de tema de esta ronda.</p>
+              
+              {/* LAYOUT CORREGIDO: ahora es flex-col y en pantallas md pasa a flex-row */}
+              <div className="flex flex-col md:flex-row gap-4 items-stretch">
+                <div className="glass-card p-4 md:p-6 rounded-2xl flex flex-col items-center justify-between border-2 border-cyan-500/20 flex-1">
+                  <p className="mb-4 text-center text-sm sm:text-base">Dejar que la IA elija una carta de tema aleatoria.</p>
                   <Button onClick={handleRevealThemeCard} variant="primary" size="md" className="animate-pulse-slow w-full">
                     Revelar Tema de la IA
                   </Button>
                 </div>
-                <div className="glass-card p-6 rounded-2xl flex flex-col items-center border-2 border-blue-500/20">
-                  <p className="mb-4 text-center">O... escribe tu propia carta de tema.</p>
+                <div className="glass-card p-4 md:p-6 rounded-2xl flex flex-col items-center border-2 border-blue-500/20 flex-1">
+                  <p className="mb-4 text-center text-sm sm:text-base">O... escribe tu propia carta de tema.</p>
                   <form onSubmit={handleSubmitCustomTheme} className="w-full space-y-3 flex flex-col flex-grow">
                     <textarea
                       value={customThemeText}
                       onChange={(e) => setCustomThemeText(e.target.value)}
                       placeholder="Ej: La verdadera razón por la que se extinguieron los dinosaurios fue ______."
-                      className="w-full bg-slate-900/90 backdrop-blur-xl border-2 border-slate-600/50 rounded-xl p-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 text-sm flex-grow"
+                      className="w-full bg-slate-900/90 backdrop-blur-xl border-2 border-slate-600/50 rounded-xl p-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 text-sm flex-grow min-h-[80px]"
                       required minLength={10}
                     />
                     <Button type="submit" variant="secondary" size="md" className="w-full">
@@ -162,9 +161,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
 
   return (
     <>
-      <div className="w-full h-[calc(100vh-170px)] grid grid-cols-1 lg:grid-cols-4 gap-6 animate-fade-in">
+      <div className="w-full min-h-[calc(100vh-180px)] lg:h-[calc(100vh-180px)] grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 animate-fade-in">
         
-        {/* Columna Izquierda: Puntuaciones y Salir */}
         <div className="lg:col-span-1 flex flex-col gap-4 overflow-hidden">
           <Card className="glass-card p-4 rounded-2xl flex-1 flex flex-col overflow-hidden">
             <h3 className="text-base font-bold text-white mb-3 pb-2 border-b border-cyan-500/20 flex items-center gap-2 flex-shrink-0">
@@ -193,20 +191,19 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
           </Button>
         </div>
 
-        {/* Columna Derecha: Área Principal de Juego */}
-        <div className="lg:col-span-3 flex flex-col gap-4 min-h-0">
+        <div className="lg:col-span-3 flex flex-col gap-3 md:gap-4 min-h-0">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
              <Card className="glass-card p-3 rounded-2xl border border-cyan-500/10 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center flex-shrink-0"><Users className="w-5 h-5 text-cyan-400" weight="bold" /></div>
-                <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Sala</p><p className="text-lg font-black text-cyan-300 tracking-wider">{room.code}</p></div>
+                <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Sala</p><p className="text-base sm:text-lg font-black text-cyan-300 tracking-wider">{room.code}</p></div>
             </Card>
             <Card className="glass-card p-3 rounded-2xl border border-purple-500/10 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0"><Star className="w-5 h-5 text-purple-400" weight="bold" /></div>
-                <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Maestro del Tema</p><p className="text-lg font-bold text-white truncate">{themeMaster?.username || "..."}</p></div>
+                <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Maestro del Tema</p><p className="text-base sm:text-lg font-bold text-white truncate">{themeMaster?.username || "..."}</p></div>
             </Card>
             <Card className="glass-card p-3 rounded-2xl border border-blue-500/10 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0"><Robot className="w-5 h-5 text-blue-400" weight="bold" /></div>
-                <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Personalidad IA</p><p className="text-lg font-bold text-white truncate">{room.personality?.title || "..."}</p></div>
+                <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Personalidad IA</p><p className="text-base sm:text-lg font-bold text-white truncate">{room.personality?.title || "..."}</p></div>
             </Card>
           </div>
           

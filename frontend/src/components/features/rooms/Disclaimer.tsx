@@ -37,8 +37,8 @@ export const Disclaimer: React.FC<DisclaimerProps> = ({ onAgree }) => {
           {/* ¿Qué es? */}
           <div className="glass-card rounded-xl p-4 border border-cyan-500/20">
             <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                <Robot className="w-5 h-5 text-cyan-400" weight="bold" />
+              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                <Robot className="w-6 h-6 text-cyan-400" weight="bold" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white">¿Qué es esto?</h3>
@@ -53,7 +53,7 @@ export const Disclaimer: React.FC<DisclaimerProps> = ({ onAgree }) => {
           <div className="glass-card rounded-xl p-4 border border-blue-500/20">
             <div className="flex items-start gap-3 mb-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                <Crown className="w-5 h-5 text-yellow-400" weight="bold" />
+                <Crown className="w-6 h-6 text-yellow-400" weight="bold" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white">¿Cómo jugar?</h3>
@@ -71,11 +71,13 @@ export const Disclaimer: React.FC<DisclaimerProps> = ({ onAgree }) => {
         {/* Advertencia de contenido - Más compacta */}
         <div className="glass-card rounded-xl p-4 mb-6 border-2 border-red-500/30 bg-red-500/5">
           <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
             <Flame className="w-6 h-6 text-red-400 flex-shrink-0" weight="bold" />
+            </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold text-red-400 mb-1">Contenido para adultos +18</h3>
               <p className="text-gray-300 text-sm leading-relaxed">
-                Este juego puede contener <span className="font-bold text-white">humor negro</span>, lenguaje soez y temas para adultos. Todo el contenido es generado por IA.
+                Este juego puede contener <span className="font-bold text-white">humor negro</span>, lenguaje soez y temas para adultos. Todo el contenido es generado por IA y no representa las opiniones de nadie.
               </p>
             </div>
           </div>
@@ -88,7 +90,7 @@ export const Disclaimer: React.FC<DisclaimerProps> = ({ onAgree }) => {
           className="w-full text-lg"
           icon={<Play weight="bold" />}
         >
-          Soy mayor de edad y acepto
+          Soy un adulto irresponsable y acepto
         </Button>
       </div>
     </div>

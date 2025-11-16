@@ -80,13 +80,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ showToast, onRoomConnected }
 
   return (
     <>
-      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center w-full px-4 animate-fade-in">
+      <div className="min-h-[calc(100vh-9rem)] flex items-center justify-center w-full px-4 animate-fade-in">
         <div className="w-full max-w-md">
           {/* Usamos glass-strong para un efecto más destacado */}
           <Card className="glass-strong p-8 border-2 border-cyan-500/20">
             <div className="text-center mb-8">
               <h2 className="text-3xl lg:text-4xl font-black text-transparent bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text mb-2">
-                ¡Hora de Jugar, {user.username}!
+                ¡A Jugar, {user.username}!
               </h2>
               <p className="text-gray-300">¿Qué quieres hacer hoy?</p>
             </div>

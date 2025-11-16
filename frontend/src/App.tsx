@@ -107,11 +107,11 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative">
+    <div className="h-screen flex flex-col overflow-hidden">
       <Header username={user?.username} onLogout={handleLogout} />
       
-      <main className="pt-24 pb-8 px-4">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-grow min-h-0 px-8 pt-[100px]">
+        <div className={currentView === GameState.Lobby || currentView === GameState.InGame? 'w-full' : 'max-w-7xl mx-auto'}>
           {renderContent()}
         </div>
       </main>

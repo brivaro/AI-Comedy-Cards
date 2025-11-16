@@ -9,7 +9,7 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=comedy_cards_db
     ports:
-      - "5432:5432" # Opcional, para conectar con un cliente de BBDD
+      - "5432:5432"
     networks:
       - app-network
 
@@ -18,7 +18,7 @@ services:
     build: ./backend
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      - ./backend/app:/app/app # Hot-reloading
+      - ./backend:/app # Hot-reloading
     ports:
       - "8000:8000"
     env_file:
@@ -32,9 +32,6 @@ services:
     container_name: comedy_cards_frontend
     build:
       context: ./frontend
-      args:
-        # En desarrollo, apuntamos directamente al backend. En producción, usaremos el proxy de Nginx.
-        VITE_API_BASE_URL: http://localhost:8000/api/v1
     volumes:
       - ./frontend/src:/app/src # Hot-reloading
     ports:
