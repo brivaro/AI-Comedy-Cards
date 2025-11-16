@@ -40,25 +40,27 @@ class WebSocketService {
     // const host = window.location.host;
     // const wsUrl = `${proto}://${host}/ws/game/${roomCode}?token=${token}`;
     
-    // Lógica NUEVA y CORRECTA para producción:
     if (!API_BASE_URL) {
-      console.error("VITE_API_BASE_URL no está definida. La conexión WebSocket fallará.");
-      this.onError("Error de configuración: La URL del servidor no está disponible.");
+      const errorMsg = "Error de configuración: La URL del servidor no está disponible.";
+      console.error(errorMsg);
+      this.onError(errorMsg);
       return;
     }
 
-    // 1. Convertimos la URL de la API HTTP (https://...) a una URL WebSocket (wss://...)
-    const wsUrlObject = new URL(API_BASE_URL);
-    wsUrlObject.protocol = wsUrlObject.protocol.replace('http', 'ws');
+    // 1. Tomamos la URL base de la API
+    const apiUrl = new URL(API_BASE_URL);
+
+    // 2. Cambiamos el protocolo de http/https a ws/wss.
+    const wsProtocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
     
-    // 2. Construimos la ruta correcta para el endpoint del WebSocket
-    wsUrlObject.pathname = `/ws/game/${roomCode}`;
-    wsUrlObject.search = `?token=${token}`;
+    // 3. El host es el mismo que el de la API.
+    const wsHost = apiUrl.host;
 
-    const wsUrl = wsUrlObject.toString();
+    // 4. Construimos la URL final del WebSocket
+    const wsUrl = `${wsProtocol}//${wsHost}/ws/game/${roomCode}?token=${token}`;
+
     console.log(`Conectando WebSocket a: ${wsUrl}`);
-    // --- FIN DE LA CORRECCIÓN ---
-
+    
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
