@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { SignOut, Crown, Trophy, Users, Robot, Star } from 'phosphor-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { SignOut, Crown, Trophy, Users, Robot, Star, Repeat } from 'phosphor-react';
 import { Room, User, PlayerHandCard, RoundPhase } from '../../types';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -10,6 +10,7 @@ import VotingDisplay from './VotingDisplay';
 import { websocketService } from '../../services/websocketService';
 import { FIRST_PLACE_POINTS, SECOND_PLACE_POINTS, THIRD_PLACE_POINTS } from '../../constants';
 import { Toast } from '../ui/Toast';
+import GameOverModal from './GameOverModal';
 
 interface GameBoardProps {
   room: Room;
@@ -20,17 +21,28 @@ interface GameBoardProps {
 
 const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeaveGame }) => {
   const [customThemeText, setCustomThemeText] = useState('');
-  const [toast, setToast] = useState<{ message: string; show: boolean; type: 'success' | 'error' | 'info' }>({ 
-    message: '', 
-    show: false, 
-    type: 'info' 
+  const [toast, setToast] = useState<{ message: string; show: boolean; type: 'success' | 'error' | 'info' }>({
+    message: '',
+    show: false,
+    type: 'info'
   });
+  const [showGameOver, setShowGameOver] = useState(false);
 
   const myPlayerDetails = room.players.find(p => p.username === currentUser.username);
   const themeMaster = room.players.find(p => p.id === room.theme_master_id);
   const sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
   const isThemeMaster = myPlayerDetails?.is_theme_master ?? false;
   const amSpectating = myPlayerDetails?.is_spectating ?? false;
+
+  useEffect(() => {
+    if (room.game_state === 'Finished') {
+      // Usamos un pequeño delay para que la transición sea más suave
+      const timer = setTimeout(() => setShowGameOver(true), 500);
+      return () => clearTimeout(timer);
+    } else {
+      setShowGameOver(false);
+    }
+  }, [room.game_state]);
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setToast({ message, show: true, type });
@@ -44,7 +56,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
   const handleSelectWinners = (winnerIds: number[]) => {
     websocketService.sendMessage('select_winners', { winner_ids: winnerIds });
   };
-  
+
   const handleRevealThemeCard = () => {
     websocketService.sendMessage('choose_theme_card', {});
   };
@@ -81,7 +93,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
             <div className="text-center animate-fade-in w-full max-w-4xl mx-auto">
               <h2 className="text-xl md:text-2xl font-bold text-white mb-2">Tu turno, Maestro del Tema</h2>
               <p className="text-gray-400 mb-4 sm:mb-6">Elige una opción para la carta de tema de esta ronda.</p>
-              
+
               {/* LAYOUT CORREGIDO: ahora es flex-col y en pantallas md pasa a flex-row */}
               <div className="flex flex-col md:flex-row gap-4 items-stretch">
                 <div className="glass-card p-4 md:p-6 rounded-2xl flex flex-col items-center justify-between border-2 border-cyan-500/20 flex-1">
@@ -110,7 +122,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
           );
         }
         return <Spinner text={`Esperando a que ${themeMaster?.username} elija el tema...`} size="sm" />;
-      
+
       case RoundPhase.CardPlaying:
         if (isThemeMaster) {
           return <Spinner text="Espera a que los demás jueguen sus cartas..." size="sm" />;
@@ -119,18 +131,18 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
           return <Spinner text="¡Buena jugada! Esperando al resto de jugadores..." size="sm" />;
         }
         return <PlayerHand cards={myHand} onPlayCard={handlePlayCard} />;
-      
+
       case RoundPhase.Voting:
         if (isThemeMaster) {
-            return <VotingDisplay playedCards={room.played_cards_info} onSelectWinners={handleSelectWinners} />;
+          return <VotingDisplay playedCards={room.played_cards_info} onSelectWinners={handleSelectWinners} />;
         }
         return <Spinner text={`Esperando a que ${themeMaster?.username} elija a los ganadores...`} size="sm" />;
-      
+
       case RoundPhase.RoundOver:
         const winners = room.round_winners.map(id => room.players.find(p => p.id === id)).filter(Boolean);
         const points = [FIRST_PLACE_POINTS, SECOND_PLACE_POINTS, THIRD_PLACE_POINTS];
         const medals = ['🥇', '🥈', '🥉'];
-        
+
         return (
           <div className="text-center animate-pop-in">
             <h2 className="text-3xl font-bold text-white mb-4">¡Ronda Finalizada!</h2>
@@ -148,12 +160,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
                 Comenzar Siguiente Ronda
               </Button>
             )}
-             {!isThemeMaster && <Spinner text="El Maestro del Tema iniciará la siguiente ronda..." size="sm" />}
+            {!isThemeMaster && <Spinner text="El Maestro del Tema iniciará la siguiente ronda..." size="sm" />}
           </div>
         );
 
       default:
-        return <Spinner text="Cargando estado de la partida..." size="md"/>;
+        return <Spinner text="Cargando estado de la partida..." size="md" />;
     }
   };
 
@@ -161,8 +173,14 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
 
   return (
     <>
-      <div className="w-full min-h-[calc(100vh-180px)] lg:h-[calc(100vh-180px)] grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 animate-fade-in">
-        
+      {showGameOver && (
+        <GameOverModal
+          room={room}
+          currentUser={currentUser}
+          onClose={onLeaveGame} // Reutilizamos la función de salir para volver al menú
+        />
+      )}
+      <div className="w-full min-h-[calc(100vh-180px)] lg:h-[calc(100vh-180px)] grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 animate-fade-in">  
         <div className="lg:col-span-1 flex flex-col gap-4 ">
           <Card className="glass-card p-4 rounded-2xl flex-1 flex flex-col ">
             <h3 className="text-base font-bold text-white mb-3 pb-2 border-b border-cyan-500/20 flex items-center gap-2 flex-shrink-0">
@@ -181,7 +199,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
                     </div>
                     {!player.is_spectating && (<span className="font-black text-xl text-yellow-400 flex-shrink-0">{player.score}</span>)}
                   </div>
-                   {player.is_spectating && (<span className="text-xs text-center block text-gray-400 font-medium mt-1">Esperando para jugar...</span>)}
+                  {player.is_spectating && (<span className="text-xs text-center block text-gray-400 font-medium mt-1">Esperando para jugar...</span>)}
                 </div>
               ))}
             </div>
@@ -192,23 +210,32 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, currentUser, myHand, onLeav
         </div>
 
         <div className="lg:col-span-3 flex flex-col gap-3 md:gap-4 min-h-0">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-             <Card className="glass-card p-3 rounded-2xl border border-cyan-500/10 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center flex-shrink-0"><Users className="w-5 h-5 text-cyan-400" weight="bold" /></div>
-                <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Sala</p><p className="text-base sm:text-lg font-black text-cyan-300 tracking-wider">{room.code}</p></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <Card className="glass-card p-3 rounded-2xl border border-cyan-500/10 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center flex-shrink-0"><Users className="w-5 h-5 text-cyan-400" weight="bold" /></div>
+              <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Sala</p><p className="text-base sm:text-lg font-black text-cyan-300 tracking-wider">{room.code}</p></div>
             </Card>
             <Card className="glass-card p-3 rounded-2xl border border-purple-500/10 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0"><Star className="w-5 h-5 text-purple-400" weight="bold" /></div>
-                <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Maestro del Tema</p><p className="text-base sm:text-lg font-bold text-white truncate">{themeMaster?.username || "..."}</p></div>
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0"><Star className="w-5 h-5 text-purple-400" weight="bold" /></div>
+              <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Maestro del Tema</p><p className="text-base sm:text-lg font-bold text-white truncate">{themeMaster?.username || "..."}</p></div>
             </Card>
             <Card className="glass-card p-3 rounded-2xl border border-blue-500/10 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0"><Robot className="w-5 h-5 text-blue-400" weight="bold" /></div>
-                <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Personalidad IA</p><p className="text-base sm:text-lg font-bold text-white truncate">{room.personality?.title || "..."}</p></div>
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0"><Robot className="w-5 h-5 text-blue-400" weight="bold" /></div>
+              <div className="flex-1 min-w-0"><p className="text-xs text-gray-400">Personalidad IA</p><p className="text-base sm:text-lg font-bold text-white truncate">{room.personality?.title || "..."}</p></div>
+            </Card>
+            <Card className="glass-card p-3 rounded-2xl border border-yellow-500/10 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center flex-shrink-0"><Trophy className="w-5 h-5 text-yellow-400" weight="bold" /></div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-400">Ronda</p>
+                <p className="text-base sm:text-lg font-black text-white">
+                  {room.current_round} <span className="text-gray-400">/</span> {room.total_rounds}
+                </p>
+              </div>
             </Card>
           </div>
-          
+
           <ThemeDisplay themeCard={room.current_theme_card} themeMasterName={themeMaster?.username} />
-          
+
           <Card className="glass-strong rounded-2xl border-2 border-cyan-500/10 flex-1 min-h-0 ">
             <div className="h-full w-full overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent">
               <div className="flex items-center justify-center min-h-full">

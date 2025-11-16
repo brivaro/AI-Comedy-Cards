@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, JSON
+from sqlalchemy import Column, DateTime, Integer, String, Boolean, ForeignKey, Text, JSON, func
 from sqlalchemy.orm import relationship
 from .database import Base
+from datetime import datetime
 
 class User(Base):
     __tablename__ = "users"
@@ -9,6 +10,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)     
     players = relationship("Player", back_populates="user")
     topics = relationship("Topic", back_populates="owner", cascade="all, delete-orphan")
+    last_seen = Column(DateTime, default=datetime.utcnow)
 
 class Room(Base):
     __tablename__ = "rooms"
@@ -25,6 +27,11 @@ class Room(Base):
 
     personality_id = Column(Integer, ForeignKey("personalities.id"), nullable=True)
     personality = relationship("Personality", back_populates="rooms")
+
+    total_rounds = Column(Integer, default=10, nullable=False)
+    current_round = Column(Integer, default=0, nullable=False)
+
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     players = relationship(
         "Player",
@@ -52,7 +59,7 @@ class Player(Base):
     __tablename__ = "players"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    room_id = Column(Integer, ForeignKey("rooms.id")) 
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE")) 
     score = Column(Integer, default=0)
     is_host = Column(Boolean, default=False)
     is_theme_master = Column(Boolean, default=False)

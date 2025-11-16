@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, exc, select
 
 from ..db import crud, models, schemas
-from ..websocket_manager import manager
+from .websocket_manager import manager
 from . import gemini
 from ..core import constants
 
@@ -53,29 +53,11 @@ async def broadcast_player_hands(db: Session, room_code: str):
 
 # --- Acciones del Juego ---
 
-#async def set_topic(db: Session, room_code: str, player_id: int, payload: dict):
-#    """El host de la sala elige un tema para la partida."""
-#    topic_id = payload.get('topic_id')
-#    room = crud.get_room_by_code(db, room_code)
-#    player = crud.get_player(db, player_id)
-#    topic = crud.get_topic(db, topic_id)
-#
-#    if not all([room, player, topic]) or not player.is_host:
-#        logging.warning(f"Intento no autorizado de establecer tema en sala {room_code} por PlayerID {player_id}")
-#        return
-#    
-#    try:
-#        room.topic_id = topic.id
-#        db.commit()
-#        logging.info(f"El host '{player.user.username}' ha establecido el tema '{topic.title}' (ID: {topic.id}) para la sala {room_code}.")
-#    except exc.SQLAlchemyError as e:
-#        logging.error(f"Error de base de datos al establecer el tema para la sala {room_code}: {e}")
-#        db.rollback()
-
 async def set_game_settings(db: Session, room_code: str, player_id: int, payload: dict):
     """El host de la sala elige un tema y una personalidad para la partida."""
     topic_id = payload.get('topic_id')
     personality_id = payload.get('personality_id')
+    total_rounds = payload.get('total_rounds')
     
     room = crud.get_room_by_code(db, room_code)
     player = crud.get_player(db, player_id)
@@ -95,6 +77,8 @@ async def set_game_settings(db: Session, room_code: str, player_id: int, payload
     try:
         room.topic_id = topic.id
         room.personality_id = personality.id
+        if total_rounds and total_rounds in [1, 5, 10, 15, 20]:
+            room.total_rounds = total_rounds
         db.commit()
         logging.info(f"El host '{player.user.username}' ha establecido el tema '{topic.title}' y la personalidad '{personality.title}' para la sala {room_code}.")
     except exc.SQLAlchemyError as e:
@@ -114,7 +98,7 @@ async def submit_custom_theme(db: Session, room_code: str, player_id: int, paylo
     if room.round_phase != "ThemeSelection":
         logging.warning(f"Intento de enviar tema personalizado fuera de la fase ThemeSelection en sala {room_code}.")
         return
-    if not (10 < len(text) < 280) in text:
+    if not (10 < len(text) < 280):
         await manager.send_to_player(room_code, player_id, {"type": "error", "data": {"message": "El tema debe tener entre 10 y 280 caracteres."}})
         return
     
@@ -183,6 +167,7 @@ async def start_game(db: Session, room_code: str, player_id: int, payload: dict)
         # Establecer el estado final del juego antes de repartir
         room.game_state = "InGame"
         room.round_phase = "ThemeSelection"
+        room.current_round = 1 # Empezamos en la ronda 1
 
         # Crear y añadir todas las cartas nuevas a la sesión
         new_cards = []
@@ -312,6 +297,12 @@ async def start_next_round(db: Session, room_code: str, player_id: int, payload:
     room = crud.get_room_by_code(db, room_code)
     if not room or player_id != room.theme_master_id: return
 
+    if room.current_round >= room.total_rounds:
+        logging.info(f"Ronda final completada en la sala {room_code}. Finalizando la partida.")
+        room.game_state = "Finished" # Un nuevo estado para el frontend
+        db.commit()
+        return
+
     try:
         spectators = [p for p in room.players if p.is_spectating]
         #newly_activated_player_ids = {p.id for p in spectators}
@@ -349,6 +340,8 @@ async def start_next_round(db: Session, room_code: str, player_id: int, payload:
             for p_id in list(player_ids_who_played):
                 if available_cards:
                     db.add(models.PlayerCard(player_id=p_id, card_id=available_cards.pop().id))
+
+            room.current_round += 1        
 
             all_active_players = sorted([p for p in room.players if not p.is_spectating], key=lambda p: p.id)
             current_tm_index = next((i for i, p in enumerate(all_active_players) if p.id == room.theme_master_id), -1)

@@ -12,7 +12,7 @@ type WebSocketAction =
   | 'start_next_round';
 
 interface WebSocketPayloads {
-  set_game_settings: { topic_id: number; personality_id: number };
+  set_game_settings: { topic_id: number; personality_id: number, total_rounds: number };
   start_game: {};
   choose_theme_card: {};
   submit_custom_theme: { text: string };

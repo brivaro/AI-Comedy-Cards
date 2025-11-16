@@ -1,7 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status, Query
 from sqlalchemy.orm import Session
 import logging
-from ..websocket_manager import manager
+from ..services.websocket_manager import manager
 from ..db.database import SessionLocal
 from ..db import crud
 from .auth import get_user_from_token_ws

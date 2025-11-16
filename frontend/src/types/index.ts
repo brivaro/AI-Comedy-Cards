@@ -64,7 +64,7 @@ export interface PlayedCardInfo {
 
 export interface Room {
   code: string;
-  game_state: 'Lobby' | 'Generating' | 'InGame';
+  game_state: 'Lobby' | 'Generating' | 'InGame' | 'Finished'; 
   topic_id: number | null;
   personality_id: number | null;
   personality: Personality | null;
@@ -74,6 +74,8 @@ export interface Room {
   players: Player[];
   played_cards_info: PlayedCardInfo[];
   round_winners: number[];
+  total_rounds: number;
+  current_round: number;
 }
 
 export interface Personality {

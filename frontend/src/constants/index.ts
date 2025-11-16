@@ -12,3 +12,6 @@ export const THIRD_PLACE_POINTS = 5;
 // Costes de acciones (a implementar en el futuro en el backend)
 export const WRITE_ANSWER_COST = 50;
 export const DRAW_CARD_COST = 10;
+
+export const DEFAULT_ROUNDS = 1;
+export const ROUND_OPTIONS = [1, 5, 10, 15, 20];

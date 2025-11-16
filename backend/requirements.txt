@@ -17,3 +17,6 @@ pydantic-settings
 
 # API de Google Gemini
 google-genai
+
+# Migraciones de las tablas de la BD
+alembic

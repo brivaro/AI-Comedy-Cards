@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -31,6 +32,8 @@ def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2Passw
             detail="Nombre de usuario o contraseña incorrectos",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    user.last_seen = datetime.utcnow()
+    db.commit()
     access_token = security.create_access_token(data={"sub": user.username})
     refresh_token = security.create_refresh_token(data={"sub": user.username})
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}

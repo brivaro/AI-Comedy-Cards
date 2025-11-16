@@ -56,13 +56,15 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    if (dev.isDevMode) return; // No configurar websockets en modo dev
+    if (dev.isDevMode) return;
 
     websocketService.onGameStateUpdate = (newRoomState) => {
       setRoom(newRoomState);
 
       if (newRoomState.game_state !== 'Generating') {
-        const newView = newRoomState.game_state === 'InGame' ? GameState.InGame : GameState.Lobby;
+        const isGameView = newRoomState.game_state === 'InGame' || newRoomState.game_state === 'Finished';
+        const newView = isGameView ? GameState.InGame : GameState.Lobby;
+
         setCurrentView(newView);
         setIsLoading(false);
       }

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from . import models
@@ -12,6 +13,7 @@ class UserCreate(UserBase):
 
 class UserInDB(UserBase):
     id: int
+    last_seen: Optional[datetime] = None
     class Config:
         from_attributes = True
 
@@ -94,6 +96,8 @@ class RoomSchema(BaseModel):
     played_cards_info: List[dict] = [] 
     round_winners: List[int] = []
     personality: Optional[PersonalitySchema]
+    total_rounds: int
+    current_round: int
 
     class Config:
         from_attributes = True
@@ -122,7 +126,9 @@ class RoomSchema(BaseModel):
             round_phase=room.round_phase,
             players=players_schema,
             played_cards_info=room.played_cards_info or [],
-            round_winners=room.round_winners or []
+            round_winners=room.round_winners or [],
+            total_rounds=room.total_rounds,
+            current_round=room.current_round
         )
     
 class PersonalitySchema(BaseModel):

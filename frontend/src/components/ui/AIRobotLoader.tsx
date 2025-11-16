@@ -7,16 +7,46 @@ export default function AIRobotLoader() {
   const [headTilt, setHeadTilt] = useState(0);
   const [armRotation, setArmRotation] = useState(0);
   const [legPhase, setLegPhase] = useState(0);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const headRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Seguimiento del mouse
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    // Función de throttling para limitar la frecuencia de ejecución de un evento
+    const throttle = <T extends (...args: any[]) => void>(func: T, limit: number) => {
+      let inThrottle: boolean;
+      return function(this: any, ...args: Parameters<T>) {
+        if (!inThrottle) {
+          func.apply(this, args);
+          inThrottle = true;
+          setTimeout(() => inThrottle = false, limit);
+        }
+      };
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    // Mueve el cálculo de la posición de los ojos directamente al manejador del mouse
+    const handleMouseMove = (e: MouseEvent) => {
+      if (headRef.current) {
+        const headRect = headRef.current.getBoundingClientRect();
+        const headCenterX = headRect.left + headRect.width / 2;
+        const headCenterY = headRect.top + headRect.height / 2;
+
+        const deltaX = e.clientX - headCenterX;
+        const deltaY = e.clientY - headCenterY;
+        
+        const angle = Math.atan2(deltaY, deltaX);
+        // Aumentamos el divisor para que el movimiento del ojo sea más sutil y menos "nervioso"
+        const distance = Math.min(Math.sqrt(deltaX * deltaX + deltaY * deltaY) / 70, 4);
+
+        setEyePosition({
+          x: Math.cos(angle) * distance,
+          y: Math.sin(angle) * distance
+        });
+      }
+    };
+
+    // Aplica throttling al manejador del mouse para mejorar el rendimiento
+    const throttledMouseMove = throttle(handleMouseMove, 30); // Actualiza cada 30ms
+
+    window.addEventListener('mousemove', throttledMouseMove);
 
     // Movimiento del robot de lado a lado
     const moveInterval = setInterval(() => {
@@ -28,12 +58,6 @@ export default function AIRobotLoader() {
         return newPos;
       });
     }, 50);
-
-    // Movimiento de los ojos
-    const eyeInterval = setInterval(() => {
-      // Ya no necesitamos mover los ojos aleatoriamente
-      // porque ahora siguen al mouse
-    }, 1000);
 
     // Inclinación de cabeza
     const headInterval = setInterval(() => {
@@ -54,34 +78,13 @@ export default function AIRobotLoader() {
     }, 30);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousemove', throttledMouseMove);
       clearInterval(moveInterval);
-      clearInterval(eyeInterval);
       clearInterval(headInterval);
       clearInterval(armInterval);
       clearInterval(legInterval);
     };
   }, [direction]);
-
-  // Calcular posición de los ojos basada en el mouse
-  useEffect(() => {
-    if (headRef.current) {
-      const headRect = headRef.current.getBoundingClientRect();
-      const headCenterX = headRect.left + headRect.width / 2;
-      const headCenterY = headRect.top + headRect.height / 2;
-
-      const deltaX = mousePosition.x - headCenterX;
-      const deltaY = mousePosition.y - headCenterY;
-      
-      const angle = Math.atan2(deltaY, deltaX);
-      const distance = Math.min(Math.sqrt(deltaX * deltaX + deltaY * deltaY) / 50, 3);
-
-      setEyePosition({
-        x: Math.cos(angle) * distance,
-        y: Math.sin(angle) * distance
-      });
-    }
-  }, [mousePosition]);
 
   const leftLegRotation = Math.sin(legPhase * Math.PI / 180) * 15;
   const rightLegRotation = Math.sin((legPhase + 180) * Math.PI / 180) * 15;

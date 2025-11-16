@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MIN_PLAYERS, MAX_PLAYERS } from '../../constants';
+import { MIN_PLAYERS, MAX_PLAYERS, DEFAULT_ROUNDS, ROUND_OPTIONS } from '../../constants';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Room, User, Topic, Personality } from '../../types';
@@ -8,9 +8,10 @@ import * as apiService from '../../services/apiService';
 import { Spinner } from '../ui/Spinner';
 import CreateTopicModal from '../features/topics/CreateTopicModal';
 import GameSettingsSelector from '../features/topics/GameSettingsSelector';
-import { Copy, SignOut, Play, Users, Robot, BookOpen, Check, Crown } from 'phosphor-react';
+import { Copy, SignOut, Play, Users, Robot, BookOpen, Check, Crown, Trophy } from 'phosphor-react';
 import { useDev } from '../../context/DevContext';
 import * as devMocks from '../../mocks/devMocks';
+import clsx from 'clsx';
 
 interface LobbyProps {
   room: Room;
@@ -24,29 +25,32 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
   const [availablePersonalities, setAvailablePersonalities] = useState<Personality[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  
+  const [selectedRounds, setSelectedRounds] = useState<number>(room.total_rounds || DEFAULT_ROUNDS);
+
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(room.topic_id);
   const [selectedPersonalityId, setSelectedPersonalityId] = useState<number | null>(room.personality_id);
 
   const { isDevMode } = useDev();
   const isHost = room.players.find(p => p.username === currentUser.username)?.is_host || false;
-  
+
   const confirmedTopic = availableTopics.find(t => t.id === room.topic_id);
   const confirmedPersonality = room.personality;
-  
-  const settingsChanged = selectedTopicId !== room.topic_id || selectedPersonalityId !== room.personality_id;
+
+  const settingsChanged = selectedTopicId !== room.topic_id ||
+    selectedPersonalityId !== room.personality_id ||
+    selectedRounds !== room.total_rounds;
   const canConfirm = selectedTopicId !== null && selectedPersonalityId !== null;
   const canStart = room.players.length >= MIN_PLAYERS && room.topic_id !== null && room.personality_id !== null;
 
   useEffect(() => {
     if (isDevMode) {
-        setIsLoading(true);
-        setTimeout(() => {
-            setAvailableTopics(devMocks.mockTopics);
-            setAvailablePersonalities(devMocks.mockPersonalities);
-            setIsLoading(false);
-        }, 500);
-        return;
+      setIsLoading(true);
+      setTimeout(() => {
+        setAvailableTopics(devMocks.mockTopics);
+        setAvailablePersonalities(devMocks.mockPersonalities);
+        setIsLoading(false);
+      }, 500);
+      return;
     }
 
     const fetchLobbyData = async () => {
@@ -57,10 +61,10 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
           apiService.getPublicTopics(),
           apiService.getPersonalities()
         ]);
-        
+
         const allTopics = [...myTopicsRes.data, ...publicTopicsRes.data];
         const uniqueTopics = Array.from(new Map(allTopics.map(t => [t.id, t])).values());
-        
+
         setAvailableTopics(uniqueTopics);
         setAvailablePersonalities(personalitiesRes.data);
 
@@ -75,11 +79,13 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
     };
     fetchLobbyData();
   }, [showToast, isDevMode]);
-  
+
   useEffect(() => {
     setSelectedTopicId(room.topic_id);
     setSelectedPersonalityId(room.personality_id);
-  }, [room.topic_id, room.personality_id]);
+    setSelectedRounds(room.total_rounds);
+  }, [room.topic_id, room.personality_id, room.total_rounds]);
+
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(room.code);
@@ -96,22 +102,23 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
       websocketService.sendMessage('start_game', {});
     }
   };
-  
+
   const handleTopicCreated = (newTopic: Topic) => {
     setAvailableTopics(prev => [newTopic, ...prev]);
-    setSelectedTopicId(newTopic.id); 
+    setSelectedTopicId(newTopic.id);
   };
 
   const handleConfirmSettings = () => {
     if (isDevMode) {
-        showToast('Ajustes guardados (DEV)...', 'success');
-        console.log("DEV: Confirm settings clicked with", { selectedTopicId, selectedPersonalityId });
-        return;
+      showToast('Ajustes guardados (DEV)...', 'success');
+      console.log("DEV: Confirm settings clicked with", { selectedTopicId, selectedPersonalityId });
+      return;
     }
     if (isHost && selectedTopicId && selectedPersonalityId) {
       websocketService.sendMessage('set_game_settings', {
         topic_id: selectedTopicId,
-        personality_id: selectedPersonalityId
+        personality_id: selectedPersonalityId,
+        total_rounds: selectedRounds,
       });
       showToast("¡Ajustes de la partida guardados!", 'success');
     }
@@ -143,7 +150,7 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:items-stretch flex-grow min-h-0">
-          
+
           <div className="lg:col-span-1 flex flex-col gap-4">
             <div className="space-y-4">
               <Card className="p-4 border-2 border-cyan-500/10">
@@ -163,23 +170,32 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
 
               <Card className="glass-card p-4 border-2 border-cyan-500/10 space-y-3">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-md bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                      <Robot className="w-4 h-4 text-cyan-400" weight="bold" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-400 font-medium">Personalidad IA</p>
-                      <p className="text-sm sm:text-base font-bold text-white truncate">{confirmedPersonality?.title || "No seleccionada"}</p>
-                    </div>
+                  <div className="w-8 h-8 rounded-md bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                    <Robot className="w-4 h-4 text-cyan-400" weight="bold" />
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-md bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                      <BookOpen className="w-4 h-4 text-blue-400" weight="bold" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-400 font-medium">Tema del Juego</p>
-                      <p className="text-sm sm:text-base font-bold text-white truncate">{confirmedTopic?.title || "No seleccionado"}</p>
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-400 font-medium">Personalidad IA</p>
+                    <p className="text-sm sm:text-base font-bold text-white truncate">{confirmedPersonality?.title || "No seleccionada"}</p>
                   </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-4 h-4 text-blue-400" weight="bold" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-400 font-medium">Tema del Juego</p>
+                    <p className="text-sm sm:text-base font-bold text-white truncate">{confirmedTopic?.title || "No seleccionado"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                    <Trophy className="w-4 h-4 text-yellow-400" weight="bold" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-400 font-medium">Rondas Totales</p>
+                    <p className="text-sm sm:text-base font-bold text-white truncate">{room.total_rounds}</p>
+                  </div>
+                </div>
               </Card>
 
               {isHost && (
@@ -201,16 +217,35 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
                       {settingsChanged ? 'Guardar Cambios' : 'Ajustes Guardados'}
                     </Button>
                   </div>
+                  <div className="pt-2">
+                    <label className="block text-sm font-semibold text-gray-300 mb-2 text-center">Nº de Rondas</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {ROUND_OPTIONS.map(rounds => (
+                        <button
+                          key={rounds}
+                          onClick={() => setSelectedRounds(rounds)}
+                          className={clsx(
+                            'p-2 rounded-lg font-bold transition-all',
+                            selectedRounds === rounds
+                              ? 'bg-cyan-500 text-white ring-2 ring-white/50'
+                              : 'bg-slate-700/80 text-gray-300 hover:bg-slate-600/80'
+                          )}
+                        >
+                          {rounds}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <Button
                     onClick={handleStartGame}
                     disabled={!canStart || settingsChanged}
                     variant="primary" size="md" icon={<Play weight="bold" />}
                     className="w-full"
                   >
-                    {settingsChanged 
-                      ? 'Guarda los cambios para empezar' 
-                      : canStart 
-                        ? '¡Iniciar Partida!' 
+                    {settingsChanged
+                      ? 'Guarda los cambios para empezar'
+                      : canStart
+                        ? '¡Iniciar Partida!'
                         : `Faltan ${MIN_PLAYERS - room.players.length} jugadores`}
                   </Button>
                 </Card>
@@ -218,7 +253,6 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
             </div>
           </div>
 
-          {/* CAMBIO: Este contenedor ahora restringe la altura de su contenido */}
           <div className="lg:col-span-2 flex flex-col min-h-0">
             {isHost ? (
               <Card className="glass-strong p-4 md:p-6 border-2 border-cyan-500/20 flex-grow flex flex-col overflow-hidden">
@@ -245,7 +279,7 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
       </div>
 
       {showCreateModal && (
-        <CreateTopicModal 
+        <CreateTopicModal
           onClose={() => setShowCreateModal(false)}
           onTopicCreated={handleTopicCreated}
           showToast={showToast}
