@@ -1,5 +1,5 @@
 import { Room, PlayerHandCard } from '../types';
-import { API_BASE_URL } from './apiService';
+import { VITE_WS_BASE_URL } from './apiService';
 
 // Definimos los tipos de acciones y sus payloads
 type WebSocketAction = 
@@ -34,13 +34,22 @@ class WebSocketService {
       this.disconnect();
     }
     
-    // Esta lógica es universal y funciona en cualquier entorno.
-    // Construye la URL del WebSocket a partir de la ubicación actual de la ventana.
-    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host; // Contendrá 'localhost:5173' en dev o 'tu-app.vercel.app' en prod
-    const wsPath = '/ws/game'; // Definimos la ruta base del websocket
+    // 1. Usamos la variable de entorno para producción.
+    // 2. Si no existe (estamos en local), construimos la URL localmente.
+    const wsBaseUrl = VITE_WS_BASE_URL;
 
-    const wsUrl = `${proto}//${host}${wsPath}/${roomCode}?token=${token}`;
+    let wsUrl: string;
+
+    if (wsBaseUrl) {
+      // Estamos en producción (Vercel)
+      wsUrl = `${wsBaseUrl}/ws/game/${roomCode}?token=${token}`;
+    } else {
+      // Estamos en desarrollo local
+      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      // Apuntamos explícitamente al backend local
+      const host = 'localhost:8000'; 
+      wsUrl = `${proto}//${host}/ws/game/${roomCode}?token=${token}`;
+    }
 
     console.log(`Conectando WebSocket a: ${wsUrl}`);
     
