@@ -152,7 +152,7 @@ const App: React.FC = () => {
     // LÓGICA DE RENDERIZADO ORIGINAL
     if (isAuthLoading || isLoading) {
       return (
-        <div className="w-full flex flex-col min-h-screen">
+        <div className="w-full flex flex-col min-h-screen overflow-hidden items-center justify-center">
           <CookingRobotLoader />
         </div>
       );
