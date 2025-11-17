@@ -8,6 +8,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)     
+    coins = Column(Integer, default=0, nullable=False)
     players = relationship("Player", back_populates="user")
     topics = relationship("Topic", back_populates="owner", cascade="all, delete-orphan")
     last_seen = Column(DateTime, default=datetime.utcnow)
@@ -99,3 +100,15 @@ class Personality(Base):
     template_prompt = Column(Text, nullable=False)
 
     rooms = relationship("Room", back_populates="personality")
+
+
+class Purchase(Base):
+    __tablename__ = "purchases"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    item_id = Column(String, nullable=False)
+    cost = Column(Integer, nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+
+    # relationship optional
+    user = relationship("User")

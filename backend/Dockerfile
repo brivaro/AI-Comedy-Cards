@@ -21,5 +21,5 @@ EXPOSE 8000
 
 # --- NUEVO: Usar el script de arranque como ENTRYPOINT ---
 # El CMD ahora se pasará como argumento al startup.sh
-ENTRYPOINT ["./startup.sh"]
+# ENTRYPOINT ["./startup.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

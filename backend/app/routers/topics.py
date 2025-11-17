@@ -6,6 +6,7 @@ import logging
 from ..db import crud, schemas, models
 from ..db.database import get_db
 from .auth import get_current_user
+from fastapi import HTTPException
 
 router = APIRouter(prefix="/api/v1/topics", tags=["Topics"])
 
@@ -36,3 +37,16 @@ def get_public_topics(db: Session = Depends(get_db)):
     logging.info("Solicitud para obtener la lista de temas públicos.")
     public_topics = crud.get_public_topics(db=db)
     return [schemas.TopicSchema.from_orm_model(topic) for topic in public_topics]
+
+
+@router.delete("/{topic_id}", status_code=204)
+def delete_topic(
+    topic_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Elimina un topic si pertenece al usuario autenticado."""
+    success = crud.delete_topic(db=db, topic_id=topic_id, owner_id=current_user.id)
+    if not success:
+        raise HTTPException(status_code=403, detail="No autorizado para eliminar este tema o no existe.")
+    return None

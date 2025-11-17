@@ -6,6 +6,7 @@ import GameBoard from './components/game/GameBoard';
 import { Toast } from './components/ui/Toast';
 import { Spinner } from './components/ui/Spinner';
 import { Header } from './components/layout/Header';
+const Store = React.lazy(() => import('./components/features/store/Store'));
 import { GameState, Room, PlayerHandCard } from './types';
 import { useAuth } from './context/AuthContext';
 import { websocketService } from './services/websocketService';
@@ -174,6 +175,7 @@ const App: React.FC = () => {
   };
 
   const activeUser = dev.isDevMode ? dev.mockUser : user;
+  const [showStore, setShowStore] = useState(false);
   const viewForLayout = dev.isDevMode ? (dev.currentView ?? GameState.MainMenu) : currentView;
   const headerVariant = (viewForLayout === GameState.Lobby || viewForLayout === GameState.InGame) 
     ? 'solid' 
@@ -181,7 +183,7 @@ const App: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <Header username={activeUser?.username} onLogout={dev.isDevMode ? undefined : handleLogout} variant={headerVariant} />
+      <Header username={activeUser?.username} coins={activeUser?.coins} onOpenStore={() => setShowStore(true)} onLogout={dev.isDevMode ? undefined : handleLogout} variant={headerVariant} />
       
       <main className="flex-grow min-h-0 px-8 pt-[100px] pb-8">
         <div className={`${viewForLayout === GameState.Lobby || viewForLayout === GameState.InGame ? 'w-full' : 'max-w-7xl mx-auto'} h-full`}>
@@ -196,6 +198,15 @@ const App: React.FC = () => {
       )}
 
       <Toast message={toast.message} show={toast.show} type={toast.type} />
+      {showStore && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Lazy-load component to avoid circular imports in small change; import dynamically */}
+          <React.Suspense fallback={<div className="text-white">Cargando tienda...</div>}>
+            {/* @ts-ignore */}
+            <Store onClose={() => setShowStore(false)} showToast={showToast} />
+          </React.Suspense>
+        </div>
+      )}
       <DevPanel />
     </div>
   );

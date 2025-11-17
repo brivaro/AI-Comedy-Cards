@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 from logging.config import fileConfig
 
-from .routers import auth, rooms, topics, game_ws, personalities
+from .routers import auth, rooms, topics, game_ws, personalities, store
 from .start_routines import lifespan
 from .core.config import settings
 
@@ -38,6 +38,7 @@ app.include_router(rooms.router)
 app.include_router(topics.router)
 app.include_router(game_ws.router)
 app.include_router(personalities.router)
+app.include_router(store.router)
 
 @app.get("/api/v1")
 def read_root():

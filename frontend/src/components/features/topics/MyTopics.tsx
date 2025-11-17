@@ -4,6 +4,7 @@ import { Button } from '../../ui/Button';
 import { Spinner } from '../../ui/Spinner';
 import { Topic } from '../../../types';
 import * as apiService from '../../../services/apiService';
+import { useAuth } from '../../../context/AuthContext';
 import CreateTopicModal from './CreateTopicModal';
 import { Plus, GlobeHemisphereWest, Lock, BookOpen } from 'phosphor-react';
 
@@ -16,6 +17,8 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [topicToDelete, setTopicToDelete] = useState<Topic | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const fetchMyTopics = async () => {
@@ -30,6 +33,8 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
     };
     fetchMyTopics();
   }, [showToast]);
+
+  const { user } = useAuth();
 
   const handleTopicCreated = (newTopic: Topic) => {
     setTopics(prevTopics => [newTopic, ...prevTopics]);
@@ -74,25 +79,36 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
                         <h3 className="text-xl font-bold text-white mb-1 truncate">{topic.title}</h3>
                         <p className="text-sm text-gray-500 font-medium">Por {topic.owner_username}</p>
                       </div>
-                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-bold text-xs ${
-                        topic.is_public 
-                          ? 'bg-green-500/20 text-green-400 border-2 border-green-500/30' 
-                          : 'bg-gray-500/20 text-gray-400 border-2 border-gray-500/30'
-                      }`}>
-                        {topic.is_public ? (
-                          <>
-                            <GlobeHemisphereWest className="w-4 h-4" weight="bold" />
-                            Público
-                          </>
-                        ) : (
-                          <>
-                            <Lock className="w-4 h-4" weight="bold" />
-                            Privado
-                          </>
-                        )}
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-bold text-xs ${
+                          topic.is_public 
+                            ? 'bg-green-500/20 text-green-400 border-2 border-green-500/30' 
+                            : 'bg-gray-500/20 text-gray-400 border-2 border-gray-500/30'
+                        }`}>
+                          {topic.is_public ? (
+                            <>
+                              <GlobeHemisphereWest className="w-4 h-4" weight="bold" />
+                              Público
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="w-4 h-4" weight="bold" />
+                              Privado
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <p className="text-gray-400 text-sm line-clamp-3 leading-relaxed">{topic.prompt}</p>
+                      <p className="text-gray-400 text-sm line-clamp-3 leading-relaxed">{topic.prompt}</p>
+                    {user && user.username === topic.owner_username && (
+                      <div className="mt-4 flex justify-end">
+                        <Button
+                          onClick={() => { setTopicToDelete(topic); setShowDeleteModal(true); }}
+                          variant="danger"
+                          size="sm"
+                        >
+                          Eliminar
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -117,6 +133,29 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
         </div>
       </Modal>
 
+      {showDeleteModal && topicToDelete && (
+        <Modal onClose={() => { setShowDeleteModal(false); setTopicToDelete(null); }} size="sm">
+          <div className="p-4">
+            <h3 className="text-lg font-bold text-white mb-2">Eliminar tema</h3>
+            <p className="text-gray-400 mb-4">¿Estás seguro de que quieres eliminar el tema "{topicToDelete.title}"? Esta acción no se puede deshacer.</p>
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => { setShowDeleteModal(false); setTopicToDelete(null); }}>Cancelar</Button>
+              <Button variant="danger" onClick={async () => {
+                try {
+                  await apiService.deleteTopic(topicToDelete.id);
+                  setTopics(prev => prev.filter(t => t.id !== topicToDelete.id));
+                  showToast('Tema eliminado', 'success');
+                } catch (err) {
+                  showToast('No se pudo eliminar el tema', 'error');
+                } finally {
+                  setShowDeleteModal(false);
+                  setTopicToDelete(null);
+                }
+              }}>Eliminar</Button>
+            </div>
+          </div>
+        </Modal>
+      )}
       {showCreateModal && (
         <CreateTopicModal 
           onClose={() => setShowCreateModal(false)}

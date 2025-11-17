@@ -8,6 +8,7 @@ export interface UserCreate {
 export interface User {
   id: number;
   username: string;
+  coins?: number;
 }
 
 // --- Tipos de Tema ---

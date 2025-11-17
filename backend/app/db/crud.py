@@ -6,6 +6,7 @@ import random
 import string
 from sqlalchemy import func
 import logging
+from typing import Optional
 
 # --- User CRUD ---
 
@@ -20,7 +21,7 @@ def get_user_by_username(db: Session, username: str):
 def create_user(db: Session, user: schemas.UserCreate):
     logging.info(f"Intentando crear nuevo usuario: {user.username}")
     hashed_password = get_password_hash(user.password)
-    db_user = models.User(username=user.username, hashed_password=hashed_password)
+    db_user = models.User(username=user.username, hashed_password=hashed_password, coins=0)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -131,3 +132,51 @@ def create_topic(db: Session, topic: schemas.TopicCreate, owner_id: int):
     db.commit()
     db.refresh(db_topic)
     return db_topic
+
+
+def delete_topic(db: Session, topic_id: int, owner_id: int) -> bool:
+    """Eliminar un topic si pertenece al owner_id. Retorna True si eliminado, False si no existe o no pertenece."""
+    topic = get_topic(db, topic_id)
+    if not topic:
+        logging.info(f"Intento de borrar topic inexistente ID: {topic_id}")
+        return False
+    if topic.owner_id != owner_id:
+        logging.warning(f"Usuario ID {owner_id} intentó borrar topic ID {topic_id} sin ser propietario.")
+        return False
+    db.delete(topic)
+    db.commit()
+    logging.info(f"Topic ID {topic_id} eliminado por owner ID {owner_id}.")
+    return True
+
+
+# --- Monedas / Tienda ---
+def adjust_user_coins(db: Session, user_id: int, delta: int) -> int:
+    """Ajusta (suma o resta) las monedas del usuario y devuelve el nuevo balance."""
+    user = get_user(db, user_id)
+    if not user:
+        raise ValueError("Usuario no encontrado")
+    new_balance = (user.coins or 0) + int(delta)
+    if new_balance < 0:
+        raise ValueError("Fondos insuficientes")
+    user.coins = new_balance
+    db.commit()
+    db.refresh(user)
+    logging.info(f"Balance actualizado para usuario ID {user_id}: {user.coins} (delta {delta})")
+    return user.coins
+
+
+def create_purchase(db: Session, user_id: int, item_id: str, cost: int):
+    """Create a purchase record (does not commit transaction by itself)."""
+    purchase = models.Purchase(user_id=user_id, item_id=item_id, cost=cost)
+    db.add(purchase)
+    db.flush()
+    db.refresh(purchase)
+    return purchase
+
+
+def get_user_purchases(db: Session, user_id: int, limit: Optional[int] = None):
+    """Devuelve las compras del usuario ordenadas por fecha descendente."""
+    query = db.query(models.Purchase).filter(models.Purchase.user_id == user_id).order_by(models.Purchase.created_at.desc())
+    if limit:
+        query = query.limit(limit)
+    return query.all()

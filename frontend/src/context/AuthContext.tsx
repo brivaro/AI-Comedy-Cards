@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (username: any, password: any) => Promise<void>;
   register: (userData: UserCreate) => Promise<void>;
   logout: () => void;
+  refreshUser?: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,8 +63,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('accessToken');
   };
 
+  const refreshUser = async () => {
+    const token = localStorage.getItem('accessToken');
+    if (token) await fetchUser(token);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, accessToken, isLoading, login: handleLogin, register: handleRegister, logout: handleLogout }}>
+    <AuthContext.Provider value={{ user, accessToken, isLoading, login: handleLogin, register: handleRegister, logout: handleLogout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

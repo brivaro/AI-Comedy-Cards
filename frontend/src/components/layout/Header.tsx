@@ -6,9 +6,11 @@ interface HeaderProps {
   username?: string;
   onLogout?: () => void;
   variant?: 'glass' | 'solid';
+  coins?: number;
+  onOpenStore?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ username, onLogout, variant = 'glass' }) => {
+export const Header: React.FC<HeaderProps> = ({ username, onLogout, variant = 'glass', coins, onOpenStore }) => {
   const isGlass = variant === 'glass';
 
   return (
@@ -32,6 +34,10 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout, variant = 'g
         {/* Usuario */}
         {username && (
           <div className="flex items-center gap-3">
+            {/* Coins display */}
+            <button onClick={onOpenStore} className="px-3 py-2 rounded-xl bg-slate-800/40 border border-cyan-500/20 flex items-center gap-2">
+              <span className="text-cyan-300 font-bold">{coins ?? 0} 💎</span>
+            </button>
             <div className={clsx(
               "px-4 py-2.5 rounded-xl flex items-center gap-2.5 transition-all",
               isGlass 

@@ -14,6 +14,7 @@ class UserCreate(UserBase):
 class UserInDB(UserBase):
     id: int
     last_seen: Optional[datetime] = None
+    coins: int = 0
     class Config:
         from_attributes = True
 
@@ -135,6 +136,24 @@ class PersonalitySchema(BaseModel):
     id: int
     title: str
     description: str
+
+    class Config:
+        from_attributes = True
+
+
+class PurchaseBase(BaseModel):
+    item_id: str
+    cost: int
+
+
+class PurchaseCreate(PurchaseBase):
+    pass
+
+
+class PurchaseInDB(PurchaseBase):
+    id: int
+    user_id: int
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

@@ -79,3 +79,15 @@ export const getPublicTopics = () => {
 export const getPersonalities = () => {
     return api.get('/personalities/');
 };
+
+export const deleteTopic = (topicId) => {
+  return api.delete(`/topics/${topicId}`);
+};
+
+export const purchaseItem = (cost, itemId = null) => {
+  return api.post('/store/purchase', { cost, item_id: itemId });
+};
+
+export const getPurchases = () => {
+  return api.get('/store/purchases');
+};
