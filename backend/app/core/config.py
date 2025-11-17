@@ -9,7 +9,6 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080 # 7 días
     ROOM_EXPIRATION_MINUTES: int = 60
     VERCEL_FRONTEND_URL: str
-    DATABASE_URL_SUPABASE: str
 
     class Config:
         env_file = ".env.local"
