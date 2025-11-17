@@ -15,12 +15,15 @@ interface DevContextType {
   toggleIsThemeMaster: () => void;
   roundPhase: RoundPhase;
   setRoundPhase: (phase: string) => void;
+  isCollapsed: boolean;
+  togglePanel: () => void; 
 }
 
 const DevContext = createContext<DevContextType | undefined>(undefined);
 
 export const DevProvider = ({ children }: { children: ReactNode }) => {
   const [isDevMode, setIsDevMode] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false); 
   const [currentView, setCurrentView] = useState<GameState | null>(GameState.MainMenu);
   const [isHost, setIsHost] = useState(true);
   const [isThemeMaster, setIsThemeMaster] = useState(true);
@@ -29,6 +32,7 @@ export const DevProvider = ({ children }: { children: ReactNode }) => {
   const toggleDevMode = () => setIsDevMode(prev => !prev);
   const toggleIsHost = () => setIsHost(prev => !prev);
   const toggleIsThemeMaster = () => setIsThemeMaster(prev => !prev);
+  const togglePanel = () => { setIsCollapsed(prev => !prev);};
   
   const mockUser = devMocks.mockUser;
 
@@ -58,25 +62,24 @@ export const DevProvider = ({ children }: { children: ReactNode }) => {
     return { ...room, players: updatedPlayers, theme_master_id: isThemeMaster ? mockUser.id : 2 };
   }, [currentView, isHost, isThemeMaster, roundPhase]);
 
+  const value = {
+    isDevMode,
+    toggleDevMode,
+    isCollapsed,
+    togglePanel,
+    currentView, 
+    setCurrentView, 
+    mockUser,
+    mockRoom,
+    isHost,
+    toggleIsHost,
+    isThemeMaster,
+    toggleIsThemeMaster, 
+    roundPhase, 
+    setRoundPhase: setRoundPhase as (phase: string) => void,
+  };
 
-  return (
-    <DevContext.Provider value={{ 
-        isDevMode, 
-        toggleDevMode, 
-        currentView, 
-        setCurrentView: (view) => setCurrentView(view as GameState), 
-        mockUser,
-        mockRoom,
-        isHost,
-        toggleIsHost,
-        isThemeMaster,
-        toggleIsThemeMaster,
-        roundPhase,
-        setRoundPhase: (phase) => setRoundPhase(phase as RoundPhase)
-    }}>
-      {children}
-    </DevContext.Provider>
-  );
+  return <DevContext.Provider value={value}>{children}</DevContext.Provider>;
 };
 
 export const useDev = () => {

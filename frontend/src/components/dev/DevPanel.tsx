@@ -1,7 +1,18 @@
 import React from 'react';
-import { Bug, Eye, IdentificationCard, GameController, ShieldWarning } from 'phosphor-react';
+import { 
+  Bug, 
+  Eye, 
+  IdentificationCard, 
+  GameController, 
+  ShieldWarning, 
+  Code,
+  ArrowBendDownLeft, 
+  ArrowBendUpRight 
+} from 'phosphor-react';
 import { useDev } from '../../context/DevContext';
-import { GameState } from '../../types';
+import { GameState, RoundPhase } from '../../types';
+// clsx ya no es necesario para la animación del contenedor principal
+// import clsx from 'clsx'; 
 
 export const DevPanel: React.FC = () => {
   const { 
@@ -14,7 +25,9 @@ export const DevPanel: React.FC = () => {
     isThemeMaster,
     toggleIsThemeMaster,
     roundPhase,
-    setRoundPhase
+    setRoundPhase,
+    isCollapsed,
+    togglePanel,
   } = useDev();
 
   if (!isDevMode) {
@@ -29,16 +42,44 @@ export const DevPanel: React.FC = () => {
     );
   }
 
+  if (isCollapsed) {
+    return (
+      <button 
+        onClick={togglePanel} 
+        className="fixed bottom-4 left-4 z-[200] w-14 h-14 glass-strong rounded-2xl border-2 border-purple-500/50 shadow-2xl flex items-center justify-center text-purple-300 hover:text-white animate-fade-in"
+        title="Expandir Panel"
+      >
+        <ArrowBendUpRight weight="bold" size={24} />
+      </button>
+    );
+  }
+
   return (
-    <div className="fixed bottom-4 left-4 z-[200] glass-strong p-4 rounded-2xl border-2 border-purple-500/50 shadow-2xl max-w-sm w-full animate-fade-in">
+    <div 
+      className="fixed bottom-4 left-4 z-[200] glass-strong p-4 rounded-2xl border-2 border-purple-500/50 shadow-2xl max-w-sm w-full animate-fade-in"
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Bug className="w-6 h-6 text-purple-400" weight="bold" />
+          <Code className="w-6 h-6 text-purple-400" weight="bold" />
           <h3 className="font-bold text-lg text-white">Dev Panel</h3>
         </div>
-        <button onClick={toggleDevMode} className="text-gray-400 hover:text-white">
-          <Eye className="w-6 h-6" />
-        </button>
+        
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={togglePanel} 
+            className="text-purple-300 hover:text-white"
+            title="Contraer Panel"
+          >
+            <ArrowBendDownLeft className="w-6 h-6" />
+          </button>
+          <button 
+            onClick={toggleDevMode} 
+            className="text-purple-300 hover:text-white"
+            title="Salir del Modo DEV"
+          >
+            <Eye className="w-6 h-6" />
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -57,7 +98,7 @@ export const DevPanel: React.FC = () => {
             <label className="text-sm font-semibold text-gray-300">Fase de Ronda</label>
             <select 
               value={roundPhase} 
-              onChange={e => setRoundPhase(e.target.value)}
+              onChange={e => setRoundPhase(e.target.value as RoundPhase)}
               className="w-full bg-slate-800 border-2 border-slate-600 rounded-md p-2 mt-1 text-white"
             >
               <option value="ThemeSelection">ThemeSelection</option>
