@@ -62,7 +62,7 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
             </Button>
           </div>
           
-          <div className="flex-grow overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent">
+          <div className="flex-grow overflow-y-auto pr-2 px-2 py-2 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent">
             {isLoading ? (
               <Spinner text="Cargando tus temas..." />
             ) : topics.length > 0 ? (
