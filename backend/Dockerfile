@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar el código de la aplicación
 COPY ./app /app/app
+COPY ./logging.ini /app/logging.ini
 
 # --- NUEVO: Copiar Alembic y el script de arranque ---
 COPY alembic.ini .

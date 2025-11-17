@@ -34,30 +34,13 @@ class WebSocketService {
       this.disconnect();
     }
     
-    // --- INICIO DE LA CORRECCIÓN ---
-    // La lógica original solo funcionaba en localhost.
-    // const proto = window.location.protocol === 'https' ? 'wss' : 'ws';
-    // const host = window.location.host;
-    // const wsUrl = `${proto}://${host}/ws/game/${roomCode}?token=${token}`;
-    
-    if (!API_BASE_URL) {
-      const errorMsg = "Error de configuración: La URL del servidor no está disponible.";
-      console.error(errorMsg);
-      this.onError(errorMsg);
-      return;
-    }
+    // Esta lógica es universal y funciona en cualquier entorno.
+    // Construye la URL del WebSocket a partir de la ubicación actual de la ventana.
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host; // Contendrá 'localhost:5173' en dev o 'tu-app.vercel.app' en prod
+    const wsPath = '/ws/game'; // Definimos la ruta base del websocket
 
-    // 1. Tomamos la URL base de la API
-    const apiUrl = new URL(API_BASE_URL);
-
-    // 2. Cambiamos el protocolo de http/https a ws/wss.
-    const wsProtocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
-    
-    // 3. El host es el mismo que el de la API.
-    const wsHost = apiUrl.host;
-
-    // 4. Construimos la URL final del WebSocket
-    const wsUrl = `${wsProtocol}//${wsHost}/ws/game/${roomCode}?token=${token}`;
+    const wsUrl = `${proto}//${host}${wsPath}/${roomCode}?token=${token}`;
 
     console.log(`Conectando WebSocket a: ${wsUrl}`);
     

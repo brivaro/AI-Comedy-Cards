@@ -1,13 +1,17 @@
+import warnings
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+from logging.config import fileConfig
 
 from .routers import auth, rooms, topics, game_ws, personalities
 from .start_routines import lifespan
 from .core.config import settings
 
-# Configuración de logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+warnings.filterwarnings("ignore", category=UserWarning)
+
+fileConfig('logging.ini', disable_existing_loggers=False)
 
 app = FastAPI(title="AI Comedy Cards API", lifespan=lifespan)
 
