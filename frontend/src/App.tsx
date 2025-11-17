@@ -9,7 +9,8 @@ import { Header } from './components/layout/Header';
 import { GameState, Room, PlayerHandCard } from './types';
 import { useAuth } from './context/AuthContext';
 import { websocketService } from './services/websocketService';
-import AIRobotLoader from './components/ui/AIRobotLoader'; 
+import AIRobotLoader from './components/ui/AIRobotLoader';
+import CookingRobotLoader from './components/ui/CookingRobotLoader'; 
 // DEV IMPORTS
 import { useDev } from './context/DevContext';
 import { DevPanel } from './components/dev/DevPanel';
@@ -151,8 +152,8 @@ const App: React.FC = () => {
     // LÓGICA DE RENDERIZADO ORIGINAL
     if (isAuthLoading || isLoading) {
       return (
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <Spinner text="Cargando..." />
+        <div className="w-full flex flex-col min-h-screen">
+          <CookingRobotLoader />
         </div>
       );
     }

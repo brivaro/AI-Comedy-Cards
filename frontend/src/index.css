@@ -81,3 +81,7 @@
 .hover-glow {
   @apply transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50;
 }
+
+html {
+  @apply scrollbar-thin scrollbar-thumb-cyan-500 scrollbar-track-slate-950;
+}

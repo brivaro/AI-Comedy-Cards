@@ -149,7 +149,7 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
           </div>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:items-stretch flex-grow min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow min-h-0">
 
           <div className="lg:col-span-1 flex flex-col gap-4">
             <div className="space-y-4">
@@ -255,7 +255,7 @@ const Lobby: React.FC<LobbyProps> = ({ room, currentUser, onLeave, showToast }) 
 
           <div className="lg:col-span-2 flex flex-col min-h-0">
             {isHost ? (
-              <Card className="glass-strong p-4 md:p-6 border-2 border-cyan-500/20 flex-grow flex flex-col overflow-hidden">
+              <Card className="glass-strong p-4 md:p-6 border-2 border-cyan-500/20 flex-1 flex flex-col">
                 {isLoading ? (
                   <Spinner text="Cargando opciones de partida..." />
                 ) : (
