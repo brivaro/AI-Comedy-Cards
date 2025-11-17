@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../../ui/Modal';
 import { Button } from '../../ui/Button';
-import { Card } from '../../ui/Card';
 import { Spinner } from '../../ui/Spinner';
 import { Topic } from '../../../types';
 import * as apiService from '../../../services/apiService';
@@ -39,7 +38,7 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
   return (
     <>
       <Modal onClose={onClose} size="xl">
-        <Card className="glass-strong p-8 border-0 max-h-[85vh] flex flex-col">
+        <div className="max-h-[85vh] flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
@@ -50,6 +49,9 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
                 <p className="text-gray-400 text-sm">Gestiona tus temas personalizados</p>
               </div>
             </div>
+          </div>
+
+          <div className="flex justify-end mb-4">
             <Button
               onClick={() => setShowCreateModal(true)}
               variant="primary"
@@ -112,7 +114,7 @@ const MyTopics: React.FC<MyTopicsProps> = ({ onClose, showToast }) => {
               </div>
             )}
           </div>
-        </Card>
+        </div>
       </Modal>
 
       {showCreateModal && (

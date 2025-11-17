@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Modal } from '../../ui/Modal';
 import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
-import { Card } from '../../ui/Card';
 import * as apiService from '../../../services/apiService';
 import { Topic } from '../../../types';
 import { FloppyDisk, BookOpen, GlobeHemisphereWest, Lock } from 'phosphor-react';
@@ -47,16 +46,15 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ onClose, onTopicCre
 
   return (
     <Modal onClose={onClose} size="lg">
-      <Card className="glass-strong p-8 border-0">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 mb-4 shadow-lg shadow-cyan-500/30">
-            <BookOpen className="w-8 h-8 text-white" weight="bold" />
-          </div>
-          <h2 className="text-3xl font-black text-white mb-2">Crear Nuevo Tema</h2>
-          <p className="text-gray-400 text-sm">La IA usará este tema para generar cartas únicas</p>
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 mb-4 shadow-lg shadow-cyan-500/30">
+          <BookOpen className="w-8 h-8 text-white" weight="bold" />
         </div>
+        <h2 className="text-3xl font-black text-white mb-2">Crear Nuevo Tema</h2>
+        <p className="text-gray-400 text-sm">La IA usará este tema para generar cartas únicas</p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             label="Título del Tema"
             type="text"
@@ -121,9 +119,8 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ onClose, onTopicCre
             Crear Tema
           </Button>
         </form>
-      </Card>
-    </Modal>
-  );
+      </Modal>
+    );
 };
 
 export default CreateTopicModal;

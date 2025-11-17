@@ -32,16 +32,15 @@ export const Modal: React.FC<ModalProps> = ({ onClose, children, size = 'md' }) 
         className={`relative glass-strong rounded-3xl shadow-2xl w-full border-2 border-cyan-500/20 animate-pop-in my-auto flex flex-col max-h-[90vh] ${sizes[size]}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 md:p-8 flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent">
+        <div className="p-6 md:p-8 flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-transparent relative">
+          <button 
+            onClick={onClose} 
+            className="absolute top-4 right-4 glass-card w-10 h-10 rounded-xl flex items-center justify-center text-white hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-300 hover:scale-110 z-50 border-2 border-red-500/30 group"
+          >
+            <X weight="bold" className="w-5 h-5 text-gray-300 group-hover:text-red-400 transition-colors" />
+          </button>
           {children}
         </div>
-        
-        <button 
-          onClick={onClose} 
-          className="absolute top-4 right-4 glass-card w-10 h-10 rounded-xl flex items-center justify-center text-white hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-300 hover:scale-110 z-10 border-2 border-red-500/30 group"
-        >
-          <X weight="bold" className="w-5 h-5 text-gray-300 group-hover:text-red-400 transition-colors" />
-        </button>
       </div>
     </div>
   );

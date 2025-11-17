@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { MagnifyingGlass, Robot, BookOpen, Check } from 'phosphor-react';
+import { MagnifyingGlass, Robot, BookOpen, Check, MagnifyingGlassPlus } from 'phosphor-react';
+import { Modal } from '../../ui/Modal';
 
 interface Topic {
   id: number;
@@ -21,6 +22,7 @@ interface SelectableCardProps {
   isSelected: boolean;
   onSelect: () => void;
   icon?: React.ReactNode;
+  onViewFull?: () => void;
 }
 
 const SelectableCard: React.FC<SelectableCardProps> = ({ 
@@ -28,7 +30,8 @@ const SelectableCard: React.FC<SelectableCardProps> = ({
   description, 
   isSelected, 
   onSelect,
-  icon 
+  icon,
+  onViewFull
 }) => {
   return (
     <div
@@ -49,10 +52,22 @@ const SelectableCard: React.FC<SelectableCardProps> = ({
       
       <div className="flex items-start gap-3 relative z-10">
         {icon && (
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all relative ${
             isSelected ? 'bg-cyan-500/30 shadow-lg shadow-cyan-500/20' : 'bg-slate-700/50 group-hover:bg-cyan-500/20'
           }`}>
             {icon}
+            {onViewFull && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewFull();
+                }}
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl bg-cyan-500/40 flex items-center justify-center hover:bg-cyan-500/60 cursor-pointer"
+                title="Ver contenido completo"
+              >
+                <MagnifyingGlassPlus className="w-5 h-5 text-white" weight="bold" />
+              </button>
+            )}
           </div>
         )}
         <div className="flex-1 min-w-0">
@@ -89,6 +104,8 @@ const GameSettingsSelector: React.FC<GameSettingsSelectorProps> = ({
 }) => {
   const [topicFilter, setTopicFilter] = useState('');
   const [personalityFilter, setPersonalityFilter] = useState('');
+  const [expandedPersonality, setExpandedPersonality] = useState<Personality | null>(null);
+  const [expandedTopic, setExpandedTopic] = useState<Topic | null>(null);
 
   const filteredTopics = availableTopics.filter(t => {
     const searchTerm = topicFilter.toLowerCase();
@@ -143,6 +160,7 @@ const GameSettingsSelector: React.FC<GameSettingsSelectorProps> = ({
                 isSelected={selectedPersonalityId === p.id}
                 onSelect={() => onPersonalitySelect(p.id)}
                 icon={<Robot className="w-5 h-5 text-cyan-400" weight="bold" />}
+                onViewFull={() => setExpandedPersonality(p)}
               />
             ))
           ) : (
@@ -187,6 +205,7 @@ const GameSettingsSelector: React.FC<GameSettingsSelectorProps> = ({
                 isSelected={selectedTopicId === t.id}
                 onSelect={() => onTopicSelect(t.id)}
                 icon={<BookOpen className="w-5 h-5 text-blue-400" weight="bold" />}
+                onViewFull={() => setExpandedTopic(t)}
               />
             ))
           ) : (
@@ -197,6 +216,49 @@ const GameSettingsSelector: React.FC<GameSettingsSelectorProps> = ({
         </div>
       </div>
 
+      {expandedPersonality && (
+        <Modal onClose={() => setExpandedPersonality(null)} size="lg">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                <Robot className="w-6 h-6 text-white" weight="bold" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-white">{expandedPersonality.title}</h2>
+                <p className="text-xs text-gray-400">Personalidad</p>
+              </div>
+            </div>
+            
+            <div className="bg-slate-800/50 border border-cyan-500/20 rounded-xl p-6 mt-6">
+              <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+                {expandedPersonality.description}
+              </p>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {expandedTopic && (
+        <Modal onClose={() => setExpandedTopic(null)} size="lg">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <BookOpen className="w-6 h-6 text-white" weight="bold" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-white">{expandedTopic.title}</h2>
+                <p className="text-xs text-gray-400">Tema del juego</p>
+              </div>
+            </div>
+            
+            <div className="bg-slate-800/50 border border-blue-500/20 rounded-xl p-6 mt-6">
+              <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+                {expandedTopic.prompt}
+              </p>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
