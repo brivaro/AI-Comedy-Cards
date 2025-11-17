@@ -373,53 +373,45 @@ async def handle_player_disconnect(db: Session, room_code: str, player_id: int):
     logging.info(f"Gestionando desconexión del jugador '{player.user.username}' (PlayerID {player_id}) en sala {room_code}.")
 
     try:
+        # --- INICIO DE LA CORRECCIÓN LÓGICA ---
+        # Si este es el último jugador en la sala, la cerramos.
         if len(room.players) <= 1:
             logging.info(f"Último jugador desconectado de la sala {room_code}. Eliminando la sala.")
             db.delete(room)
             db.commit()
+            # Notificamos por si acaso, aunque probablemente no haya nadie escuchando.
             await manager.broadcast(room_code, {"type": "room_closed", "data": {"message": "La sala ha sido cerrada."}})
             return
 
-        if player.is_theme_master:
-            logging.info(f"El jugador que se desconecta es el Theme Master. Anulando la FK primero.")
-            room.theme_master_id = None
-            db.commit()
-            db.refresh(room)
+        # Si hay más jugadores, simplemente marcamos a este como inactivo.
+        player.is_active = False
+        logging.info(f"Jugador '{player.user.username}' marcado como inactivo.")
 
-        player_to_delete = crud.get_player(db, player_id)
-        if player_to_delete:
-            was_host = player_to_delete.is_host
-            
-            db.delete(player_to_delete)
-            db.commit() # Transacción 2: Eliminamos al jugador de forma segura.
-
-            current_room = crud.get_room_by_code(db, room_code)
-            if not current_room: return
-
-            remaining_players = sorted(current_room.players, key=lambda p: p.id)
-
-            if was_host and remaining_players:
-                new_host = remaining_players[0]
+        # Reasignar Host si el que se desconecta lo era.
+        if player.is_host:
+            # Buscamos el siguiente jugador activo con el ID más bajo para que sea el nuevo host.
+            new_host = next((p for p in sorted(room.players, key=lambda x: x.id) if p.is_active and p.id != player.id), None)
+            if new_host:
+                player.is_host = False
                 new_host.is_host = True
                 logging.info(f"Host reasignado a '{new_host.user.username}' en sala {room_code}.")
 
-            # Si la partida está en curso y nos quedamos sin TM, reiniciamos la ronda.
-            if current_room.game_state == 'InGame' and not current_room.theme_master_id and remaining_players:
-                new_theme_master = remaining_players[0]
+        # Reasignar Theme Master si la partida está en curso y él lo era.
+        if room.game_state == 'InGame' and player.is_theme_master:
+            active_players_ingame = [p for p in room.players if p.is_active and not p.is_spectating and p.id != player.id]
+            if active_players_ingame:
+                new_theme_master = sorted(active_players_ingame, key=lambda x: x.id)[0]
+                player.is_theme_master = False
                 new_theme_master.is_theme_master = True
-                current_room.theme_master_id = new_theme_master.id
-                
-                current_room.round_phase = "ThemeSelection"
-                current_room.current_theme_card_id = None
-                current_room.played_cards_info = []
-                current_room.round_winners = []
-                for p in remaining_players:
-                    p.has_played = False
-                logging.info(f"Ronda reiniciada. Theme Master reasignado a '{new_theme_master.user.username}'.")
-            
-            db.commit() # Transacción 3: Guardamos los nuevos roles.
-            logging.info(f"Desconexión del PlayerID {player_id} manejada con éxito.")
+                room.theme_master_id = new_theme_master.id
+                logging.info(f"Theme Master reasignado a '{new_theme_master.user.username}'.")
         
-    except exc.SQLAlchemyError as e:
-        logging.error(f"Error de BD al manejar desconexión en sala {room_code}: {e}", exc_info=True)
-        db.rollback()   
+        db.commit()
+        # --- FIN DE LA CORRECCIÓN LÓGICA ---
+
+        # Notificamos a los jugadores restantes que el estado ha cambiado.
+        await broadcast_game_state(db, room_code)
+
+    except Exception as e:
+        logging.error(f"Error al manejar la desconexión del PlayerID {player_id}: {e}", exc_info=True)
+        db.rollback()

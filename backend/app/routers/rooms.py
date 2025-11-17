@@ -27,21 +27,26 @@ def join_existing_room(
     logging.info(f"Usuario '{current_user.username}' intenta unirse a la sala '{room_code.upper()}'.")
     db_room = crud.get_room_by_code(db, code=room_code)
     if not db_room:
-        logging.warning(f"Intento de unirse a sala inexistente: '{room_code.upper()}'.")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="La sala no existe.")
     
-    if crud.get_player_by_user_id_and_room_code(db, user_id=current_user.id, room_code=room_code):
+    # --- INICIO DE LA MODIFICACIÓN ---
+    existing_player = crud.get_player_by_user_id_and_room_code(db, user_id=current_user.id, room_code=room_code)
+    if existing_player:
         logging.info(f"Usuario '{current_user.username}' ya está en la sala '{room_code.upper()}', reconectando.")
+        # Reactivamos al jugador si estaba inactivo
+        if not existing_player.is_active:
+            existing_player.is_active = True
+            db.commit()
+            db.refresh(db_room)
+            logging.info(f"Jugador '{current_user.username}' ha sido reactivado en la sala.")
         return schemas.RoomSchema.from_orm_model(db_room)
+    # --- FIN DE LA MODIFICACIÓN ---
 
+    # El resto de la lógica para unirse por primera vez
     if len(db_room.players) >= MAX_PLAYERS:
-        logging.warning(f"La sala '{room_code.upper()}' está llena. Intento de unión de '{current_user.username}' denegado.")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="La sala está llena.")
 
-    is_spectator = False
-    if db_room.game_state == "InGame":
-        logging.warning(f"La partida en la sala '{room_code.upper()}' ya ha comenzado. '{current_user.username}' se unirá como espectador.")
-        is_spectator = True
+    is_spectator = db_room.game_state not in ["Lobby", "Generating"]
     
     crud.add_player_to_room(db, room=db_room, user=current_user, is_spectating=is_spectator)
     
@@ -67,3 +72,21 @@ def get_room_details(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No perteneces a esta sala.")
         
     return schemas.RoomSchema.from_orm_model(db_room)
+
+@router.get("/players/me/active-room", response_model=schemas.RoomSchema)
+def get_active_room_for_current_user(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Obtiene la sala activa en la que el usuario está jugando (si existe)."""
+    logging.info(f"Usuario '{current_user.username}' solicita su sala activa.")
+    active_room = crud.get_active_room_for_user(db, user_id=current_user.id)
+    
+    if not active_room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="No hay sala activa para este usuario."
+        )
+    
+    logging.info(f"Usuario '{current_user.username}' tiene sala activa: '{active_room.code}'.")
+    return schemas.RoomSchema.from_orm_model(active_room)

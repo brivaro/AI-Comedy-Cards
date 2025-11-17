@@ -79,3 +79,8 @@ export const getPublicTopics = () => {
 export const getPersonalities = () => {
     return api.get('/personalities/');
 };
+
+// --- Funciones de Sesión ---
+export const getActiveRoom = () => {
+    return api.get('/rooms/players/me/active-room');
+};

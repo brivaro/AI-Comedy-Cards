@@ -72,6 +72,7 @@ class PlayerSchema(BaseModel):
     is_theme_master: bool
     has_played: bool
     is_spectating: bool
+    is_active: bool
 
     class Config:
         from_attributes = True
@@ -112,7 +113,8 @@ class RoomSchema(BaseModel):
                 is_host=p.is_host, 
                 is_theme_master=p.is_theme_master, 
                 has_played=p.has_played,
-                is_spectating=p.is_spectating
+                is_spectating=p.is_spectating,
+                is_active=p.is_active
             ) for p in room.players
         ]
         return cls(

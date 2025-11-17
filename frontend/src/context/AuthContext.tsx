@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
-import * as apiService from '../services/apiService'; 
-import { User, UserCreate } from '../types'; 
+import * as apiService from '../services/apiService';
+import { User, UserCreate } from '../types';
 
 interface AuthContextType {
   user: User | null;
@@ -18,18 +18,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem('accessToken'));
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // --- INICIO DE LA CORRECCIÓN 1: Estabilizar handleLogout ---
+  // Envolvemos handleLogout en useCallback para que no se cree en cada render.
+  // El array de dependencias está vacío porque no depende de nada externo.
+  const handleLogout = useCallback(() => {
+    setUser(null);
+    setAccessToken(null);
+    localStorage.removeItem('accessToken');
+    sessionStorage.removeItem('activeRoomCode');
+    sessionStorage.removeItem('lastRoomData');
+  }, []);
+  // --- FIN DE LA CORRECCIÓN 1 ---
+
+  // --- INICIO DE LA CORRECCIÓN 2: Corregir dependencias de fetchUser ---
+  // Ahora que handleLogout es estable, podemos añadirla como dependencia de fetchUser.
   const fetchUser = useCallback(async (token: string) => {
     try {
-      // Usamos un interceptor para añadir el token, pero aquí lo hacemos explícito para claridad
       const response = await apiService.getCurrentUser();
       setUser(response.data);
     } catch (error) {
       console.error("Session expired or invalid token", error);
-      handleLogout(); // Limpiamos todo si el token es inválido
+      handleLogout(); // Ahora llama a la versión estable y correcta.
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [handleLogout]); // <-- Se añade la dependencia
+  // --- FIN DE LA CORRECCIÓN 2 ---
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -37,29 +51,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAccessToken(token);
       fetchUser(token);
     } else {
-      setIsLoading(false); // No hay token, terminamos de cargar
+      setIsLoading(false);
     }
-  }, [fetchUser]);
+  }, [fetchUser]); // <-- La dependencia ya estaba correcta aquí
 
   const handleLogin = async (username: any, password: any) => {
     const response = await apiService.login(username, password);
     const { access_token } = response.data;
     localStorage.setItem('accessToken', access_token);
     setAccessToken(access_token);
-    setIsLoading(true); // Ponemos en carga mientras se obtiene el usuario
-    await fetchUser(access_token); // Obtenemos los datos del usuario inmediatamente
-  };
-  
-  const handleRegister = async (userData: UserCreate) => {
-    await apiService.register(userData);
-    // Después del registro, loguear al usuario automáticamente
-    await handleLogin(userData.username, userData.password);
+    setIsLoading(true);
+    await fetchUser(access_token);
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    setAccessToken(null);
-    localStorage.removeItem('accessToken');
+  const handleRegister = async (userData: UserCreate) => {
+    await apiService.register(userData);
+    await handleLogin(userData.username, userData.password);
   };
 
   return (

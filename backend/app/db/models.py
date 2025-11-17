@@ -65,6 +65,7 @@ class Player(Base):
     is_theme_master = Column(Boolean, default=False)
     has_played = Column(Boolean, default=False)
     is_spectating = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True, nullable=False)
     
     user = relationship("User", back_populates="players")
     room = relationship("Room", back_populates="players", foreign_keys=[room_id])

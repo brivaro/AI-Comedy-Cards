@@ -41,6 +41,7 @@ export interface Player {
   is_theme_master: boolean;
   has_played: boolean;
   is_spectating: boolean;
+  is_active: boolean;
 }
 
 export interface Card {

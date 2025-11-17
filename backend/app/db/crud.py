@@ -83,6 +83,16 @@ def get_player_by_user_id_and_room_code(db: Session, user_id: int, room_code: st
         func.upper(models.Room.code) == func.upper(room_code)
     ).first()
 
+def get_active_room_for_user(db: Session, user_id: int):
+    """Obtiene la sala activa (no finalizada) en la que el usuario está jugando."""
+    return db.query(models.Room).join(
+        models.Player, models.Room.id == models.Player.room_id
+    ).filter(
+        models.Player.user_id == user_id,
+        models.Room.game_state != "Finished"
+    ).options(
+        joinedload(models.Room.players).joinedload(models.Player.user)
+    ).first()
 
 def get_players_in_room(db: Session, room_id: int):
     return db.query(models.Player).filter(models.Player.room_id == room_id).all()
@@ -95,7 +105,8 @@ def add_player_to_room(db: Session, room: models.Room, user: models.User, is_hos
         is_host=is_host,
         # Si es host, no puede ser espectador y se convierte en theme_master inicial.
         is_theme_master=is_host,
-        is_spectating=is_spectating
+        is_spectating=is_spectating,
+        is_active=True
     )
     db.add(db_player)
     db.commit()
